@@ -103,13 +103,7 @@ export default function ProcessDetailPage() {
         
       const { data: discussionsData, error: discussionsError } = await supabase
         .from('discussions')
-        .select(`
-          *,
-          profiles:author_id (
-            full_name,
-            username
-          )
-        `)
+        .select('*')
         .or(orCondition)
         .eq('is_deleted', false)
         .order('created_at', { ascending: true })
@@ -119,6 +113,7 @@ export default function ProcessDetailPage() {
       }
 
       console.log('Fetched discussions:', discussionsData)
+      console.log('OrCondition used:', orCondition)
       setDiscussions(discussionsData || [])
 
       // Track participation
@@ -495,7 +490,7 @@ export default function ProcessDetailPage() {
                           <div key={discussion.id} className="border-l-2 border-gray-200 pl-4 py-2">
                             <p className="text-sm">{getContent(discussion)}</p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              By {(discussion as any).profiles?.full_name || 'Anonymous'} • {new Date(discussion.created_at).toLocaleDateString()}
+                              By User • {new Date(discussion.created_at).toLocaleDateString()}
                             </p>
                           </div>
                         ))}
@@ -624,13 +619,16 @@ export default function ProcessDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {console.log('All discussions:', discussions)}
-                    {console.log('Process discussions:', discussions.filter(d => !d.proposal_id))}
+                    {(() => {
+                      console.log('All discussions:', discussions)
+                      console.log('Process discussions:', discussions.filter(d => !d.proposal_id))
+                      return null
+                    })()}
                     {discussions.filter(d => !d.proposal_id).map((discussion) => (
                       <div key={discussion.id} className="border-l-2 border-gray-200 pl-4 py-2">
                         <p>{getContent(discussion)}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          By {(discussion as any).profiles?.full_name || 'Anonymous'} • {new Date(discussion.created_at).toLocaleDateString()}
+                          By User • {new Date(discussion.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     ))}
