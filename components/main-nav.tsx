@@ -1,56 +1,54 @@
-"use client"
+'use client'
 
-import { useLanguage } from "@/components/language-provider"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
+import Link from 'next/link'
+import { useLanguage } from './language-provider'
+import { useAuth } from '@/lib/auth-context'
+import { Button } from './ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu'
+import { User, LogOut } from 'lucide-react'
 
 export function MainNav() {
-  const pathname = usePathname()
   const { t } = useLanguage()
+  const { user, signOut } = useAuth()
 
-  const routes = [
-    {
-      href: "/",
-      label: t("nav.home"),
-      active: pathname === "/",
-    },
-    {
-      href: "/processes",
-      label: t("nav.processes"),
-      active: pathname === "/processes",
-    },
-    {
-      href: "/proposals",
-      label: t("nav.proposals"),
-      active: pathname === "/proposals",
-    },
-    {
-      href: "/discussions",
-      label: t("nav.discussions"),
-      active: pathname === "/discussions",
-    },
-    {
-      href: "/about",
-      label: t("nav.about"),
-      active: pathname === "/about",
-    },
-  ]
+  const handleSignOut = async () => {
+    await signOut()
+  }
 
   return (
-    <nav className="hidden md:flex gap-6">
-      {routes.map((route) => (
-        <Link
-          key={route.href}
-          href={route.href}
-          className={cn(
-            "text-sm font-medium transition-colors hover:text-primary",
-            route.active ? "text-foreground" : "text-muted-foreground",
-          )}
-        >
-          {route.label}
-        </Link>
-      ))}
+    <nav className="flex items-center space-x-6">
+      <Link href="/" className="text-sm font-medium transition-colors hover:text-primary">
+        {t('nav.home')}
+      </Link>
+      <Link href="/processes" className="text-sm font-medium transition-colors hover:text-primary">
+        {t('nav.processes')}
+      </Link>
+      <Link href="/proposals" className="text-sm font-medium transition-colors hover:text-primary">
+        {t('nav.proposals')}
+      </Link>
+      <Link href="/discussions" className="text-sm font-medium transition-colors hover:text-primary">
+        {t('nav.discussions')}
+      </Link>
+      <Link href="/about" className="text-sm font-medium transition-colors hover:text-primary">
+        {t('nav.about')}
+      </Link>
+      
+      {user ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              {user.email}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2">
+              <LogOut className="h-4 w-4" />
+              {t('common.logout')}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : null}
     </nav>
   )
 }

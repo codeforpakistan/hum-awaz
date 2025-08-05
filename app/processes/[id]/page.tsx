@@ -1,84 +1,342 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
-import { MainNav } from "@/components/main-nav"
-import { LanguageSwitcher } from "@/components/language-switcher"
-import { Footer } from "@/components/footer"
-import { Calendar, Users, MapPin, FileText, MessageSquare, VoteIcon, ThumbsUp, Share2 } from "lucide-react"
-import Link from "next/link"
+'use client'
 
-export default function ProcessDetailPage({ params }: { params: { id: string } }) {
-  // Mock data for a specific process
-  const process = {
-    id: Number.parseInt(params.id),
-    title: "National Education Curriculum Reform",
-    description:
-      "Participate in shaping the future of education in Pakistan by providing feedback on proposed curriculum changes.",
-    category: "Education",
-    phase: "Discussion",
-    endDate: "2025-06-15",
-    participants: 1245,
-    progress: 35,
-    location: "National",
-    background:
-      "The Ministry of Education has proposed updates to the national curriculum to better prepare students for the modern workforce and global challenges. This consultation seeks public input on the proposed changes.",
-    timeline: [
-      { date: "2025-04-01", event: "Process launched" },
-      { date: "2025-04-01 to 2025-05-15", event: "Proposal submission phase" },
-      { date: "2025-05-16 to 2025-06-15", event: "Discussion phase" },
-      { date: "2025-06-16 to 2025-06-30", event: "Voting phase" },
-      { date: "2025-07-15", event: "Results announcement" },
-      { date: "2025-09-01", event: "Implementation begins" },
-    ],
-    proposals: [
-      {
-        id: 1,
-        title: "Integrate Digital Literacy Across All Subjects",
-        author: "Ministry of Education",
-        votes: 342,
-        comments: 56,
-      },
-      {
-        id: 2,
-        title: "Add Climate Education to Science Curriculum",
-        author: "Environmental Education Coalition",
-        votes: 287,
-        comments: 42,
-      },
-      {
-        id: 3,
-        title: "Strengthen Critical Thinking in Humanities",
-        author: "Pakistan Teachers Association",
-        votes: 215,
-        comments: 38,
-      },
-    ],
-    discussions: [
-      {
-        id: 1,
-        title: "How should we balance traditional and modern subjects?",
-        participants: 87,
-        comments: 124,
-        lastActive: "2025-05-10",
-      },
-      {
-        id: 2,
-        title: "What skills do employers need from graduates?",
-        participants: 65,
-        comments: 98,
-        lastActive: "2025-05-12",
-      },
-      {
-        id: 3,
-        title: "Regional language instruction in the curriculum",
-        participants: 53,
-        comments: 76,
-        lastActive: "2025-05-14",
-      },
-    ],
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { MainNav } from '@/components/main-nav'
+import { LanguageSwitcher } from '@/components/language-switcher'
+import { Footer } from '@/components/footer'
+import { useAuth } from '@/lib/auth-context'
+import { useLanguage } from '@/components/language-provider'
+import { supabase, Process, Proposal, Vote, Discussion } from '@/lib/supabase'
+import { 
+  Vote as VoteIcon, 
+  Users, 
+  Calendar, 
+  MapPin, 
+  ThumbsUp, 
+  ThumbsDown, 
+  MinusCircle,
+  MessageSquare,
+  FileText,
+  ChevronLeft,
+  Plus
+} from 'lucide-react'
+import Link from 'next/link'
+
+export default function ProcessDetailPage() {
+  const params = useParams()
+  const router = useRouter()
+  const { user } = useAuth()
+  const { t, language } = useLanguage()
+  const [process, setProcess] = useState<Process | null>(null)
+  const [proposals, setProposals] = useState<Proposal[]>([])
+  const [discussions, setDiscussions] = useState<Discussion[]>([])
+  const [votes, setVotes] = useState<Vote[]>([])
+  const [loading, setLoading] = useState(true)
+  const [newProposal, setNewProposal] = useState({ title: '', title_ur: '', description: '', description_ur: '' })
+  const [newDiscussion, setNewDiscussion] = useState({ content: '', content_ur: '' })
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [votingLoading, setVotingLoading] = useState<string | null>(null)
+  const [submittingProposal, setSubmittingProposal] = useState(false)
+  const [submittingDiscussion, setSubmittingDiscussion] = useState(false)
+  const [newProposalComment, setNewProposalComment] = useState({ content: '', content_ur: '' })
+  const [submittingComment, setSubmittingComment] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (params.id) {
+      fetchProcessData()
+    }
+  }, [params.id])
+
+  const fetchProcessData = async () => {
+    try {
+      const processId = Array.isArray(params.id) ? params.id[0] : params.id
+
+      // Fetch process
+      const { data: processData, error: processError } = await supabase
+        .from('processes')
+        .select('*')
+        .eq('id', processId)
+        .single()
+
+      if (processError) {
+        console.error('Error fetching process:', processError)
+        router.push('/processes')
+        return
+      }
+
+      setProcess(processData)
+
+      // Fetch proposals
+      const { data: proposalsData } = await supabase
+        .from('proposals')
+        .select('*')
+        .eq('process_id', processId)
+        .in('status', ['pending', 'approved'])
+        .order('created_at', { ascending: false })
+
+      setProposals(proposalsData || [])
+
+      // Fetch votes
+      const { data: votesData } = await supabase
+        .from('votes')
+        .select('*')
+        .in('proposal_id', (proposalsData || []).map(p => p.id))
+
+      setVotes(votesData || [])
+
+      // Fetch discussions (both process and proposal discussions)
+      const proposalIds = (proposalsData || []).map(p => p.id)
+      const orCondition = proposalIds.length > 0 
+        ? `process_id.eq.${processId},proposal_id.in.(${proposalIds.join(',')})`
+        : `process_id.eq.${processId}`
+        
+      const { data: discussionsData, error: discussionsError } = await supabase
+        .from('discussions')
+        .select(`
+          *,
+          profiles:author_id (
+            full_name,
+            username
+          )
+        `)
+        .or(orCondition)
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: true })
+      
+      if (discussionsError) {
+        console.error('Error fetching discussions:', discussionsError)
+      }
+
+      console.log('Fetched discussions:', discussionsData)
+      setDiscussions(discussionsData || [])
+
+      // Track participation
+      if (user) {
+        await supabase
+          .from('participations')
+          .upsert({
+            user_id: user.id,
+            process_id: processId,
+            participation_type: 'view'
+          })
+      }
+
+    } catch (error) {
+      console.error('Error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSubmitProposal = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user || !process) return
+
+    setError('')
+    setSuccess('')
+    setSubmittingProposal(true)
+
+    try {
+      const { error } = await supabase
+        .from('proposals')
+        .insert({
+          process_id: process.id,
+          title: newProposal.title,
+          title_ur: newProposal.title_ur || null,
+          description: newProposal.description,
+          description_ur: newProposal.description_ur || null,
+          author_id: user.id,
+          status: 'pending'
+        })
+
+      if (error) {
+        setError('Failed to submit proposal')
+      } else {
+        setSuccess('Proposal submitted successfully!')
+        setNewProposal({ title: '', title_ur: '', description: '', description_ur: '' })
+        await fetchProcessData()
+        
+        // Track participation
+        await supabase
+          .from('participations')
+          .upsert({
+            user_id: user.id,
+            process_id: process.id,
+            participation_type: 'proposal'
+          })
+      }
+    } catch (error) {
+      setError('An unexpected error occurred')
+    } finally {
+      setSubmittingProposal(false)
+    }
+  }
+
+  const handleVote = async (proposalId: string, voteType: 'support' | 'oppose' | 'neutral') => {
+    if (!user || !process) return
+
+    setVotingLoading(proposalId)
+
+    try {
+      const { error } = await supabase
+        .from('votes')
+        .upsert({
+          proposal_id: proposalId,
+          user_id: user.id,
+          vote_type: voteType
+        })
+
+      if (!error) {
+        await fetchProcessData()
+        
+        // Track participation
+        await supabase
+          .from('participations')
+          .upsert({
+            user_id: user.id,
+            process_id: process.id,
+            participation_type: 'vote'
+          })
+      }
+    } catch (error) {
+      console.error('Error voting:', error)
+    } finally {
+      setVotingLoading(null)
+    }
+  }
+
+  const handleSubmitDiscussion = async () => {
+    if (!user || !newDiscussion.content || !process) return
+
+    setError('')
+    setSubmittingDiscussion(true)
+
+    try {
+      const { error } = await supabase
+        .from('discussions')
+        .insert({
+          process_id: process.id,
+          author_id: user.id,
+          content: newDiscussion.content,
+          content_ur: newDiscussion.content_ur || null
+        })
+
+      if (error) {
+        console.error('Error inserting discussion:', error)
+        setError('Failed to submit discussion')
+      } else {
+        setNewDiscussion({ content: '', content_ur: '' })
+        await fetchProcessData()
+        
+        // Track participation
+        await supabase
+          .from('participations')
+          .upsert({
+            user_id: user.id,
+            process_id: process.id,
+            participation_type: 'comment'
+          })
+      }
+    } catch (error) {
+      console.error('Error submitting discussion:', error)
+      setError('An unexpected error occurred')
+    } finally {
+      setSubmittingDiscussion(false)
+    }
+  }
+
+  const handleSubmitProposalComment = async (proposalId: string) => {
+    if (!user || !newProposalComment.content || !process) return
+
+    setSubmittingComment(proposalId)
+
+    try {
+      const { error } = await supabase
+        .from('discussions')
+        .insert({
+          proposal_id: proposalId,
+          author_id: user.id,
+          content: newProposalComment.content,
+          content_ur: newProposalComment.content_ur || null
+        })
+
+      if (!error) {
+        setNewProposalComment({ content: '', content_ur: '' })
+        await fetchProcessData()
+        
+        // Track participation
+        await supabase
+          .from('participations')
+          .upsert({
+            user_id: user.id,
+            process_id: process.id,
+            participation_type: 'comment'
+          })
+      }
+    } catch (error) {
+      console.error('Error submitting comment:', error)
+    } finally {
+      setSubmittingComment(null)
+    }
+  }
+
+  const getVoteCount = (proposalId: string, type: string) => {
+    return votes.filter(v => v.proposal_id === proposalId && v.vote_type === type).length
+  }
+
+  const getUserVote = (proposalId: string) => {
+    return votes.find(v => v.proposal_id === proposalId && v.user_id === user?.id)
+  }
+
+  const getProposalDiscussions = (proposalId: string) => {
+    return discussions.filter(d => d.proposal_id === proposalId)
+  }
+
+  const getTitle = (item: { title: string; title_ur?: string }) => {
+    return language === 'ur' && item.title_ur ? item.title_ur : item.title
+  }
+
+  const getDescription = (item: { description: string; description_ur?: string }) => {
+    return language === 'ur' && item.description_ur ? item.description_ur : item.description
+  }
+
+  const getContent = (item: { content: string; content_ur?: string }) => {
+    return language === 'ur' && item.content_ur ? item.content_ur : item.content
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-emerald-600 mx-auto"></div>
+          <p className="mt-4 text-lg">{t('common.loading')}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!process) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg">Process not found</p>
+          <Button asChild className="mt-4">
+            <Link href="/processes">Back to Processes</Link>
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -94,261 +352,322 @@ export default function ProcessDetailPage({ params }: { params: { id: string } }
           </div>
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
-            <Button asChild variant="outline" size="sm">
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href="/register">Register</Link>
-            </Button>
+            {user ? (
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/login">{t('common.login')}</Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link href="/register">{t('common.register')}</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
+
       <main className="flex-1">
         <div className="container py-8">
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">{process.category}</Badge>
-              <Badge
-                variant={
-                  process.phase === "Discussion" ? "outline" : process.phase === "Voting" ? "default" : "secondary"
-                }
-              >
-                {process.phase}
-              </Badge>
+          <div className="mb-6">
+            <Button asChild variant="ghost" className="mb-4">
+              <Link href="/processes">
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Back to Processes
+              </Link>
+            </Button>
+            
+            <div className="flex items-start justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Badge variant={process.status === 'active' ? 'default' : 'outline'}>
+                    {t(`status.${process.status}`)}
+                  </Badge>
+                  <Badge variant="outline">{t(`category.${process.category.toLowerCase()}`)}</Badge>
+                </div>
+                <h1 className="text-3xl font-bold">{getTitle(process)}</h1>
+                <p className="text-lg text-muted-foreground max-w-3xl">
+                  {getDescription(process)}
+                </p>
+                
+                <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <span>{process.organization || 'Government Initiative'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>Ends: {new Date(process.end_date).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span>{process.participation_count || 0} participants</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight">{process.title}</h1>
-            <p className="text-muted-foreground max-w-3xl">{process.description}</p>
           </div>
 
-          <div className="grid gap-6 mt-6 md:grid-cols-3">
-            <div className="md:col-span-2">
-              <Tabs defaultValue="about">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="about">About</TabsTrigger>
-                  <TabsTrigger value="proposals">Proposals</TabsTrigger>
-                  <TabsTrigger value="discussions">Discussions</TabsTrigger>
-                  <TabsTrigger value="documents">Documents</TabsTrigger>
-                </TabsList>
-                <TabsContent value="about" className="mt-6 space-y-6">
-                  <Card>
+          <Tabs defaultValue="proposals" className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="proposals" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Proposals ({proposals.length})
+              </TabsTrigger>
+              <TabsTrigger value="discussions" className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Discussions ({discussions.length})
+              </TabsTrigger>
+              <TabsTrigger value="submit" className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Submit Proposal
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="proposals" className="space-y-6">
+              {proposals.length === 0 ? (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No proposals submitted yet</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                proposals.map((proposal) => (
+                  <Card key={proposal.id}>
                     <CardHeader>
-                      <CardTitle>Background</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p>{process.background}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Timeline</CardTitle>
-                      <CardDescription>Key dates for this process</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ol className="relative border-l border-muted">
-                        {process.timeline.map((item, index) => (
-                          <li key={index} className="mb-6 ml-6">
-                            <span className="absolute flex items-center justify-center w-6 h-6 bg-emerald-100 rounded-full -left-3 ring-8 ring-background dark:bg-emerald-900/20">
-                              <Calendar className="w-3 h-3 text-emerald-600" />
-                            </span>
-                            <h3 className="font-medium">{item.event}</h3>
-                            <p className="text-sm text-muted-foreground">{item.date}</p>
-                          </li>
-                        ))}
-                      </ol>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                <TabsContent value="proposals" className="mt-6 space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold">Proposals</h2>
-                    <Button asChild>
-                      <Link href={`/processes/${process.id}/proposals/new`}>Submit Proposal</Link>
-                    </Button>
-                  </div>
-                  <div className="space-y-4">
-                    {process.proposals.map((proposal) => (
-                      <Card key={proposal.id}>
-                        <CardHeader>
-                          <CardTitle>{proposal.title}</CardTitle>
-                          <CardDescription>Proposed by {proposal.author}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center gap-6">
-                            <div className="flex items-center gap-2">
-                              <ThumbsUp className="h-4 w-4 text-muted-foreground" />
-                              <span>{proposal.votes} votes</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                              <span>{proposal.comments} comments</span>
-                            </div>
-                          </div>
-                        </CardContent>
-                        <div className="px-6 pb-6 flex gap-2">
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={`/processes/${process.id}/proposals/${proposal.id}`}>View Details</Link>
-                          </Button>
-                          <Button size="sm" variant="ghost" className="gap-1">
-                            <ThumbsUp className="h-4 w-4" />
-                            Support
-                          </Button>
+                      <CardTitle className="flex items-center justify-between">
+                        {getTitle(proposal)}
+                        <div className="flex items-center gap-2">
+                          {user && (
+                            <>
+                              <Button
+                                variant={getUserVote(proposal.id)?.vote_type === 'support' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => handleVote(proposal.id, 'support')}
+                                disabled={votingLoading === proposal.id}
+                                className="flex items-center gap-1"
+                              >
+                                <ThumbsUp className="h-4 w-4" />
+                                {getVoteCount(proposal.id, 'support')}
+                              </Button>
+                              <Button
+                                variant={getUserVote(proposal.id)?.vote_type === 'oppose' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => handleVote(proposal.id, 'oppose')}
+                                disabled={votingLoading === proposal.id}
+                                className="flex items-center gap-1"
+                              >
+                                <ThumbsDown className="h-4 w-4" />
+                                {getVoteCount(proposal.id, 'oppose')}
+                              </Button>
+                              <Button
+                                variant={getUserVote(proposal.id)?.vote_type === 'neutral' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => handleVote(proposal.id, 'neutral')}
+                                disabled={votingLoading === proposal.id}
+                                className="flex items-center gap-1"
+                              >
+                                <MinusCircle className="h-4 w-4" />
+                                {getVoteCount(proposal.id, 'neutral')}
+                              </Button>
+                            </>
+                          )}
                         </div>
-                      </Card>
-                    ))}
-                  </div>
-                </TabsContent>
-                <TabsContent value="discussions" className="mt-6 space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold">Discussions</h2>
-                    <Button asChild>
-                      <Link href={`/processes/${process.id}/discussions/new`}>Start Discussion</Link>
-                    </Button>
-                  </div>
-                  <div className="space-y-4">
-                    {process.discussions.map((discussion) => (
-                      <Card key={discussion.id}>
-                        <CardHeader>
-                          <CardTitle>{discussion.title}</CardTitle>
-                          <CardDescription>
-                            {discussion.participants} participants · {discussion.comments} comments · Last active:{" "}
-                            {new Date(discussion.lastActive).toLocaleDateString()}
-                          </CardDescription>
-                        </CardHeader>
-                        <div className="px-6 pb-6">
-                          <Button asChild>
-                            <Link href={`/processes/${process.id}/discussions/${discussion.id}`}>Join Discussion</Link>
-                          </Button>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </TabsContent>
-                <TabsContent value="documents" className="mt-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Official Documents</CardTitle>
-                      <CardDescription>Reference materials for this process</CardDescription>
+                      </CardTitle>
+                      <CardDescription>
+                        Submitted on {new Date(proposal.created_at).toLocaleDateString()}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
+                      <p className="mb-4">{getDescription(proposal)}</p>
+                      
                       <div className="space-y-4">
-                        <div className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <FileText className="h-5 w-5 text-muted-foreground" />
-                            <div>
-                              <p className="font-medium">Current Curriculum Framework</p>
-                              <p className="text-sm text-muted-foreground">PDF · 2.4 MB</p>
-                            </div>
+                        <h4 className="font-semibold flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4" />
+                          Discussions ({getProposalDiscussions(proposal.id).length})
+                        </h4>
+                        
+                        {getProposalDiscussions(proposal.id).map((discussion) => (
+                          <div key={discussion.id} className="border-l-2 border-gray-200 pl-4 py-2">
+                            <p className="text-sm">{getContent(discussion)}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              By {(discussion as any).profiles?.full_name || 'Anonymous'} • {new Date(discussion.created_at).toLocaleDateString()}
+                            </p>
                           </div>
-                          <Button variant="outline" size="sm">
-                            Download
-                          </Button>
-                        </div>
-                        <div className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <FileText className="h-5 w-5 text-muted-foreground" />
-                            <div>
-                              <p className="font-medium">Proposed Curriculum Changes</p>
-                              <p className="text-sm text-muted-foreground">PDF · 3.1 MB</p>
-                            </div>
+                        ))}
+                        
+                        {user && (
+                          <div className="flex gap-2 mt-4">
+                            <Textarea
+                              placeholder="Add a comment..."
+                              value={newProposalComment.content}
+                              onChange={(e) => setNewProposalComment({...newProposalComment, content: e.target.value})}
+                              className="flex-1"
+                              rows={2}
+                            />
+                            <Button 
+                              onClick={() => handleSubmitProposalComment(proposal.id)}
+                              disabled={submittingComment === proposal.id || !newProposalComment.content.trim()}
+                              size="sm"
+                            >
+                              {submittingComment === proposal.id ? 'Posting...' : 'Post'}
+                            </Button>
                           </div>
-                          <Button variant="outline" size="sm">
-                            Download
-                          </Button>
-                        </div>
-                        <div className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <FileText className="h-5 w-5 text-muted-foreground" />
-                            <div>
-                              <p className="font-medium">International Best Practices</p>
-                              <p className="text-sm text-muted-foreground">PDF · 1.8 MB</p>
-                            </div>
-                          </div>
-                          <Button variant="outline" size="sm">
-                            Download
-                          </Button>
-                        </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
-                </TabsContent>
-              </Tabs>
-            </div>
-            <div className="space-y-6">
+                ))
+              )}
+            </TabsContent>
+
+            <TabsContent value="submit">
+              {user ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Submit New Proposal</CardTitle>
+                    <CardDescription>
+                      Share your ideas and suggestions for this democratic process
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleSubmitProposal} className="space-y-4">
+                      {error && (
+                        <Alert variant="destructive">
+                          <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                      )}
+                      {success && (
+                        <Alert>
+                          <AlertDescription>{success}</AlertDescription>
+                        </Alert>
+                      )}
+                      
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="title">Title (English)</Label>
+                          <Input
+                            id="title"
+                            value={newProposal.title}
+                            onChange={(e) => setNewProposal({...newProposal, title: e.target.value})}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="title_ur">Title (Urdu)</Label>
+                          <Input
+                            id="title_ur"
+                            value={newProposal.title_ur}
+                            onChange={(e) => setNewProposal({...newProposal, title_ur: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="description">Description (English)</Label>
+                          <Textarea
+                            id="description"
+                            value={newProposal.description}
+                            onChange={(e) => setNewProposal({...newProposal, description: e.target.value})}
+                            rows={4}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="description_ur">Description (Urdu)</Label>
+                          <Textarea
+                            id="description_ur"
+                            value={newProposal.description_ur}
+                            onChange={(e) => setNewProposal({...newProposal, description_ur: e.target.value})}
+                            rows={4}
+                          />
+                        </div>
+                      </div>
+                      
+                      <Button type="submit" className="w-full" disabled={submittingProposal}>
+                        {submittingProposal ? 'Submitting...' : 'Submit Proposal'}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <p className="text-muted-foreground mb-4">
+                      You need to be logged in to submit proposals
+                    </p>
+                    <div className="space-x-2">
+                      <Button asChild>
+                        <Link href="/login">Login</Link>
+                      </Button>
+                      <Button asChild variant="outline">
+                        <Link href="/register">Register</Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="discussions" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Process Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">End Date</p>
-                      <p className="text-sm text-muted-foreground">{new Date(process.endDate).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Scope</p>
-                      <p className="text-sm text-muted-foreground">{process.location}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Participants</p>
-                      <p className="text-sm text-muted-foreground">{process.participants.toLocaleString()} citizens</p>
-                    </div>
-                  </div>
-                  <Separator />
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Process Progress</span>
-                      <span>{process.progress}%</span>
-                    </div>
-                    <Progress value={process.progress} className="h-2" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <Button className="w-full justify-start gap-2">
-                    <MessageSquare className="h-4 w-4" />
-                    Join Discussion
-                  </Button>
-                  <Button className="w-full justify-start gap-2" variant="outline">
-                    <FileText className="h-4 w-4" />
-                    Submit Proposal
-                  </Button>
-                  <Button className="w-full justify-start gap-2" variant="outline">
-                    <Share2 className="h-4 w-4" />
-                    Share Process
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Organizing Body</CardTitle>
+                  <CardTitle>Process Discussions</CardTitle>
+                  <CardDescription>
+                    Share your thoughts and engage with the community
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center dark:bg-emerald-900/20">
-                      <FileText className="h-5 w-5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Ministry of Education</p>
-                      <p className="text-sm text-muted-foreground">Government of Pakistan</p>
-                    </div>
+                  <div className="space-y-4">
+                    {console.log('All discussions:', discussions)}
+                    {console.log('Process discussions:', discussions.filter(d => !d.proposal_id))}
+                    {discussions.filter(d => !d.proposal_id).map((discussion) => (
+                      <div key={discussion.id} className="border-l-2 border-gray-200 pl-4 py-2">
+                        <p>{getContent(discussion)}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          By {(discussion as any).profiles?.full_name || 'Anonymous'} • {new Date(discussion.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
+                    
+                    {discussions.filter(d => !d.proposal_id).length === 0 && (
+                      <p className="text-muted-foreground text-center py-8">
+                        No discussions yet. Be the first to share your thoughts!
+                      </p>
+                    )}
+                    
+                    {user && (
+                      <div className="space-y-2 mt-6">
+                        {error && (
+                          <Alert variant="destructive">
+                            <AlertDescription>{error}</AlertDescription>
+                          </Alert>
+                        )}
+                        <Label>Add to discussion</Label>
+                        <Textarea
+                          placeholder="Share your thoughts..."
+                          value={newDiscussion.content}
+                          onChange={(e) => setNewDiscussion({...newDiscussion, content: e.target.value})}
+                          rows={4}
+                        />
+                        <Button onClick={handleSubmitDiscussion} disabled={submittingDiscussion || !newDiscussion.content.trim()}>
+                          {submittingDiscussion ? 'Posting...' : 'Post Discussion'}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
+
       <Footer />
     </div>
   )

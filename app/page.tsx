@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { LanguageSwitcher } from "@/components/language-switcher"
@@ -8,8 +10,13 @@ import { HowToParticipate } from "@/components/how-to-participate"
 import { Footer } from "@/components/footer"
 import { ChevronRight, Users, BarChart3, Vote } from "lucide-react"
 import Link from "next/link"
+import { useLanguage } from "@/components/language-provider"
+import { useAuth } from "@/lib/auth-context"
 
 export default function Home() {
+  const { t } = useLanguage()
+  const { user } = useAuth()
+  
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -23,12 +30,20 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
-            <Button asChild variant="outline" size="sm">
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href="/register">Register</Link>
-            </Button>
+            {user ? (
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/login">{t('common.login')}</Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link href="/register">{t('common.register')}</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -38,21 +53,20 @@ export default function Home() {
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
               <div className="space-y-4">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                  Your Voice Matters in Pakistan&apos;s Democracy
+                  {t('home.hero.title')}
                 </h1>
                 <p className="max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
-                  Hum Awaaz empowers citizens to participate in democratic processes, deliberate on public issues, and
-                  contribute to collective decision-making.
+                  {t('home.hero.subtitle')}
                 </p>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button asChild size="lg">
                     <Link href="/processes">
-                      Explore Active Processes
+                      {t('home.hero.explore')}
                       <ChevronRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
                   <Button asChild variant="outline" size="lg">
-                    <Link href="/about">Learn More</Link>
+                    <Link href="/about">{t('home.hero.learnMore')}</Link>
                   </Button>
                 </div>
               </div>
@@ -89,14 +103,14 @@ export default function Home() {
               <Card>
                 <CardHeader>
                   <Users className="h-8 w-8 text-emerald-600 mb-2" />
-                  <CardTitle>Inclusive Participation</CardTitle>
+                  <CardTitle>{t('features.inclusive.title')}</CardTitle>
                   <CardDescription>
-                    Designed for all Pakistanis regardless of background or technical expertise
+                    {t('features.inclusive.description')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p>
-                    With support for multiple languages including Urdu, Punjabi, Sindhi, Pashto, and Balochi, and
+                    With support for multiple languages including Urdu and English, and
                     accessibility features for users with different needs.
                   </p>
                 </CardContent>
@@ -104,8 +118,8 @@ export default function Home() {
               <Card>
                 <CardHeader>
                   <BarChart3 className="h-8 w-8 text-emerald-600 mb-2" />
-                  <CardTitle>Transparent Processes</CardTitle>
-                  <CardDescription>Follow proposals from submission to implementation</CardDescription>
+                  <CardTitle>{t('features.transparent.title')}</CardTitle>
+                  <CardDescription>{t('features.transparent.description')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p>
@@ -117,8 +131,8 @@ export default function Home() {
               <Card>
                 <CardHeader>
                   <Vote className="h-8 w-8 text-emerald-600 mb-2" />
-                  <CardTitle>Secure Voting</CardTitle>
-                  <CardDescription>Make your voice heard with confidence</CardDescription>
+                  <CardTitle>{t('features.secure.title')}</CardTitle>
+                  <CardDescription>{t('features.secure.description')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p>

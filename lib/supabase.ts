@@ -1,66 +1,95 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://rpdgdovdiibsegukbtgz.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZGdkb3ZkaWlic2VndWtidGd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2OTEyNjUsImV4cCI6MjA2OTI2NzI2NX0.64nQoPNQrd1_ren7kAcvPDwb9J6P3995Y4eQcq0cHBo'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rpdgdovdiibsegukbtgz.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwZGdkb3ZkaWlic2VndWtidGd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2OTEyNjUsImV4cCI6MjA2OTI2NzI2NX0.64nQoPNQrd1_ren7kAcvPDwb9J6P3995Y4eQcq0cHBo'
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Database types
-export interface User {
+// Database types matching our new schema
+export interface Profile {
   id: string
-  email: string
+  username?: string
   full_name?: string
-  phone?: string
-  language: 'en' | 'ur'
+  bio?: string
+  avatar_url?: string
   location?: string
+  preferred_language: 'en' | 'ur'
+  is_verified: boolean
   created_at: string
   updated_at: string
 }
 
 export interface Process {
-  id: number
+  id: string
   title: string
   title_ur?: string
   description: string
   description_ur?: string
-  category: string
-  phase: 'discussion' | 'voting' | 'proposal' | 'implementation'
-  location: string
+  status: 'draft' | 'active' | 'closed' | 'completed'
+  category: 'education' | 'healthcare' | 'infrastructure' | 'economy' | 'environment' | 'governance' | 'other'
   start_date: string
   end_date: string
   created_by?: string
+  organization?: string
+  participation_count: number
   created_at: string
   updated_at: string
-  is_active: boolean
 }
 
 export interface Proposal {
-  id: number
-  process_id: number
+  id: string
+  process_id: string
   title: string
   title_ur?: string
   description: string
   description_ur?: string
-  author_id?: string
-  status: 'draft' | 'submitted' | 'approved' | 'rejected'
+  author_id: string
+  status: 'pending' | 'approved' | 'rejected' | 'implemented'
+  vote_count: number
+  support_percentage: number
+  created_at: string
+  updated_at: string
+}
+
+export interface Discussion {
+  id: string
+  process_id?: string
+  proposal_id?: string
+  parent_id?: string
+  author_id: string
+  content: string
+  content_ur?: string
+  likes_count: number
+  is_pinned: boolean
+  is_deleted: boolean
   created_at: string
   updated_at: string
 }
 
 export interface Vote {
-  id: number
-  proposal_id: number
+  id: string
   user_id: string
-  vote_type: 'support' | 'oppose' | 'abstain'
+  proposal_id: string
+  vote_type: 'support' | 'oppose' | 'neutral'
   created_at: string
 }
 
-export interface Comment {
-  id: number
-  proposal_id: number
+export interface Participation {
+  id: string
   user_id: string
-  content: string
-  content_ur?: string
+  process_id: string
+  participation_type: 'view' | 'proposal' | 'vote' | 'comment'
   created_at: string
-  updated_at: string
+}
+
+export interface Notification {
+  id: string
+  user_id: string
+  type: 'proposal_approved' | 'proposal_rejected' | 'new_comment' | 'process_ending' | 'vote_milestone'
+  title: string
+  message: string
+  related_process_id?: string
+  related_proposal_id?: string
+  is_read: boolean
+  created_at: string
 } 
