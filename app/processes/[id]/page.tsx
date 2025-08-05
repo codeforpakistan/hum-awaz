@@ -184,13 +184,36 @@ export default function ProcessDetailPage() {
     setVotingLoading(proposalId)
 
     try {
-      const { error } = await supabase
+      // First, check if user has already voted on this proposal
+      const { data: existingVote } = await supabase
         .from('votes')
-        .upsert({
-          proposal_id: proposalId,
-          user_id: user.id,
-          vote_type: voteType
-        })
+        .select('id, vote_type')
+        .eq('proposal_id', proposalId)
+        .eq('user_id', user.id)
+        .single()
+
+      let error = null
+
+      if (existingVote) {
+        // User has voted before, update their vote
+        const { error: updateError } = await supabase
+          .from('votes')
+          .update({ vote_type: voteType })
+          .eq('id', existingVote.id)
+        
+        error = updateError
+      } else {
+        // User hasn't voted, insert new vote
+        const { error: insertError } = await supabase
+          .from('votes')
+          .insert({
+            proposal_id: proposalId,
+            user_id: user.id,
+            vote_type: voteType
+          })
+        
+        error = insertError
+      }
 
       if (!error) {
         await fetchProcessData()
@@ -203,6 +226,8 @@ export default function ProcessDetailPage() {
             process_id: process.id,
             participation_type: 'vote'
           })
+      } else {
+        console.error('Error voting:', error)
       }
     } catch (error) {
       console.error('Error voting:', error)

@@ -20,8 +20,9 @@ interface ProposalWithProcess extends Proposal {
   vote_counts?: {
     support: number
     oppose: number
-    abstain: number
+    neutral: number
   }
+  user_vote?: string
 }
 
 export default function ProposalsPage() {
@@ -33,6 +34,8 @@ export default function ProposalsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [selectedProcess, setSelectedProcess] = useState('all')
+  const [votingLoading, setVotingLoading] = useState<string | null>(null)
+  const [sortBy, setSortBy] = useState('recent')
 
   useEffect(() => {
     fetchData()
@@ -47,29 +50,33 @@ export default function ProposalsPage() {
           *,
           process:processes(*)
         `)
-        .eq('status', 'submitted')
+.in('status', ['pending', 'approved'])
         .order('created_at', { ascending: false })
 
       if (proposalsError) {
         console.error('Error fetching proposals:', proposalsError)
       } else {
-        // Fetch vote counts for each proposal
+        // Fetch vote counts and user votes for each proposal
         const proposalsWithVotes = await Promise.all(
           (proposalsData || []).map(async (proposal) => {
             const { data: votes } = await supabase
               .from('votes')
-              .select('vote_type')
+              .select('vote_type, user_id')
               .eq('proposal_id', proposal.id)
 
             const voteCounts = {
               support: votes?.filter(v => v.vote_type === 'support').length || 0,
               oppose: votes?.filter(v => v.vote_type === 'oppose').length || 0,
-              abstain: votes?.filter(v => v.vote_type === 'abstain').length || 0
+              neutral: votes?.filter(v => v.vote_type === 'neutral').length || 0
             }
+
+            // Find current user's vote if they're logged in
+            const userVote = user ? votes?.find(v => v.user_id === user.id)?.vote_type : undefined
 
             return {
               ...proposal,
-              vote_counts: voteCounts
+              vote_counts: voteCounts,
+              user_vote: userVote
             }
           })
         )
@@ -81,7 +88,7 @@ export default function ProposalsPage() {
       const { data: processesData } = await supabase
         .from('processes')
         .select('*')
-        .eq('is_active', true)
+        .eq('status', 'active')
         .order('title', { ascending: true })
 
       setProcesses(processesData || [])
@@ -93,13 +100,27 @@ export default function ProposalsPage() {
     }
   }
 
-  const filteredProposals = proposals.filter(proposal => {
-    const matchesSearch = proposal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         proposal.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = selectedStatus === 'all' || proposal.status === selectedStatus
-    const matchesProcess = selectedProcess === 'all' || proposal.process_id.toString() === selectedProcess
-    return matchesSearch && matchesStatus && matchesProcess
-  })
+  const filteredAndSortedProposals = proposals
+    .filter(proposal => {
+      const matchesSearch = proposal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           proposal.description.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesStatus = selectedStatus === 'all' || proposal.status === selectedStatus
+      const matchesProcess = selectedProcess === 'all' || proposal.process_id.toString() === selectedProcess
+      return matchesSearch && matchesStatus && matchesProcess
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'popular':
+          const aTotal = (a.vote_counts?.support || 0) + (a.vote_counts?.oppose || 0) + (a.vote_counts?.neutral || 0)
+          const bTotal = (b.vote_counts?.support || 0) + (b.vote_counts?.oppose || 0) + (b.vote_counts?.neutral || 0)
+          return bTotal - aTotal
+        case 'support':
+          return (b.vote_counts?.support || 0) - (a.vote_counts?.support || 0)
+        case 'recent':
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      }
+    })
 
   const getTitle = (item: { title: string; title_ur?: string }) => {
     return language === 'ur' && item.title_ur ? item.title_ur : item.title
@@ -109,12 +130,60 @@ export default function ProposalsPage() {
     return language === 'ur' && item.description_ur ? item.description_ur : item.description
   }
 
-  const getPhaseLabel = (phase: string) => {
-    return t(`phase.${phase}`)
-  }
-
   const getCategoryLabel = (category: string) => {
     return t(`category.${category.toLowerCase()}`)
+  }
+
+  const handleVote = async (proposalId: string, voteType: 'support' | 'oppose' | 'neutral') => {
+    if (!user) return
+
+    setVotingLoading(proposalId)
+
+    try {
+      // First, check if user has already voted on this proposal
+      const { data: existingVote } = await supabase
+        .from('votes')
+        .select('id, vote_type')
+        .eq('proposal_id', proposalId)
+        .eq('user_id', user.id)
+        .single()
+
+      let error = null
+
+      if (existingVote) {
+        // User has voted before, update their vote
+        const { error: updateError } = await supabase
+          .from('votes')
+          .update({ vote_type: voteType })
+          .eq('id', existingVote.id)
+        
+        error = updateError
+      } else {
+        // User hasn't voted, insert new vote
+        const { error: insertError } = await supabase
+          .from('votes')
+          .insert({
+            proposal_id: proposalId,
+            user_id: user.id,
+            vote_type: voteType
+          })
+        
+        error = insertError
+      }
+
+      if (!error) {
+        await fetchData() // Refresh the data to show updated vote counts
+      } else {
+        console.error('Error voting:', error)
+        // Show user-friendly error message
+        alert('Failed to record your vote. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error voting:', error)
+      alert('An unexpected error occurred. Please try again.')
+    } finally {
+      setVotingLoading(null)
+    }
   }
 
   if (loading) {
@@ -230,9 +299,20 @@ export default function ProposalsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="submitted">Submitted</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="approved">Approved</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="implemented">Implemented</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recent">Most Recent</SelectItem>
+                  <SelectItem value="popular">Most Discussed</SelectItem>
+                  <SelectItem value="support">Most Supported</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -240,18 +320,18 @@ export default function ProposalsPage() {
 
           {/* Proposals Grid */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredProposals.length === 0 ? (
+            {filteredAndSortedProposals.length === 0 ? (
               <div className="col-span-full text-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">No proposals found matching your criteria</p>
               </div>
             ) : (
-              filteredProposals.map((proposal) => (
+              filteredAndSortedProposals.map((proposal) => (
                 <Card key={proposal.id} className="flex flex-col">
                   <CardHeader>
                     <div className="flex justify-between items-start mb-2">
                       <Badge variant="outline">
-                        {getPhaseLabel(proposal.process.phase)}
+                        {proposal.status}
                       </Badge>
                       <Badge variant="secondary">
                         {getCategoryLabel(proposal.process.category)}
@@ -268,23 +348,72 @@ export default function ProposalsPage() {
                       {/* Process Information */}
                       <div className="text-sm text-muted-foreground">
                         <p className="font-medium">Process: {getTitle(proposal.process)}</p>
-                        <p>Location: {proposal.process.location}</p>
+                        <p>Organization: {proposal.process.organization || 'Government Initiative'}</p>
                       </div>
 
-                      {/* Vote Counts */}
-                      <div className="flex items-center gap-4 text-sm">
-                        <div className="flex items-center gap-1 text-green-600">
-                          <ThumbsUp className="h-4 w-4" />
-                          <span>{proposal.vote_counts?.support || 0}</span>
+                      {/* Vote Counts & Voting */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-4 text-sm">
+                          <div className="flex items-center gap-1 text-green-600">
+                            <ThumbsUp className="h-4 w-4" />
+                            <span>{proposal.vote_counts?.support || 0}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-red-600">
+                            <ThumbsDown className="h-4 w-4" />
+                            <span>{proposal.vote_counts?.oppose || 0}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <MinusCircle className="h-4 w-4" />
+                            <span>{proposal.vote_counts?.neutral || 0}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 text-red-600">
-                          <ThumbsDown className="h-4 w-4" />
-                          <span>{proposal.vote_counts?.oppose || 0}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-gray-600">
-                          <MinusCircle className="h-4 w-4" />
-                          <span>{proposal.vote_counts?.abstain || 0}</span>
-                        </div>
+                        
+                        {user && (
+                          <div className="flex gap-2">
+                            <Button
+                              variant={proposal.user_vote === 'support' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => handleVote(proposal.id, 'support')}
+                              disabled={votingLoading === proposal.id}
+                              className={`flex items-center gap-1 ${
+                                proposal.user_vote === 'support' 
+                                  ? 'bg-green-600 hover:bg-green-700 text-white' 
+                                  : 'text-green-600 hover:text-green-700 hover:border-green-300'
+                              }`}
+                            >
+                              <ThumbsUp className="h-3 w-3" />
+                              {proposal.user_vote === 'support' ? 'Supporting' : 'Support'}
+                            </Button>
+                            <Button
+                              variant={proposal.user_vote === 'oppose' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => handleVote(proposal.id, 'oppose')}
+                              disabled={votingLoading === proposal.id}
+                              className={`flex items-center gap-1 ${
+                                proposal.user_vote === 'oppose' 
+                                  ? 'bg-red-600 hover:bg-red-700 text-white' 
+                                  : 'text-red-600 hover:text-red-700 hover:border-red-300'
+                              }`}
+                            >
+                              <ThumbsDown className="h-3 w-3" />
+                              {proposal.user_vote === 'oppose' ? 'Opposing' : 'Oppose'}
+                            </Button>
+                            <Button
+                              variant={proposal.user_vote === 'neutral' ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => handleVote(proposal.id, 'neutral')}
+                              disabled={votingLoading === proposal.id}
+                              className={`flex items-center gap-1 ${
+                                proposal.user_vote === 'neutral' 
+                                  ? 'bg-gray-600 hover:bg-gray-700 text-white' 
+                                  : 'text-gray-600 hover:text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              <MinusCircle className="h-3 w-3" />
+                              {proposal.user_vote === 'neutral' ? 'Neutral' : 'Neutral'}
+                            </Button>
+                          </div>
+                        )}
                       </div>
 
                       {/* Metadata */}
@@ -308,9 +437,9 @@ export default function ProposalsPage() {
           </div>
 
           {/* Stats */}
-          {filteredProposals.length > 0 && (
+          {filteredAndSortedProposals.length > 0 && (
             <div className="mt-8 text-center text-sm text-muted-foreground">
-              Showing {filteredProposals.length} of {proposals.length} proposals
+              Showing {filteredAndSortedProposals.length} of {proposals.length} proposals
             </div>
           )}
         </div>

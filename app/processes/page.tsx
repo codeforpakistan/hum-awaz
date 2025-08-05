@@ -71,6 +71,20 @@ export default function ProcessesPage() {
     return t(`category.${category.toLowerCase()}`)
   }
 
+  const calculateProgress = (process: Process) => {
+    const now = new Date()
+    const start = new Date(process.start_date)
+    const end = new Date(process.end_date)
+    
+    if (now < start) return 0
+    if (now > end) return 100
+    
+    const total = end.getTime() - start.getTime()
+    const elapsed = now.getTime() - start.getTime()
+    
+    return Math.round((elapsed / total) * 100)
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col">
@@ -221,9 +235,9 @@ export default function ProcessesPage() {
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span>{t('processes.progress')}</span>
-                          <span>0%</span>
+                          <span>{calculateProgress(process)}%</span>
                         </div>
-                        <Progress value={0} className="h-2" />
+                        <Progress value={calculateProgress(process)} className="h-2" />
                       </div>
                     </CardContent>
                     <CardFooter>
@@ -282,9 +296,9 @@ export default function ProcessesPage() {
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
                             <span>{t('processes.progress')}</span>
-                            <span>0%</span>
+                            <span>{calculateProgress(process)}%</span>
                           </div>
-                          <Progress value={0} className="h-2" />
+                          <Progress value={calculateProgress(process)} className="h-2" />
                         </div>
                       </CardContent>
                       <CardFooter>
