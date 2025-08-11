@@ -13,8 +13,10 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
 import { supabase, Profile } from '@/lib/supabase'
-import { Vote, User, Save } from 'lucide-react'
+import { Vote, User, Save, Shield, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ProfilePage() {
@@ -30,6 +32,14 @@ export default function ProfilePage() {
     location: '',
     preferred_language: 'en' as 'en' | 'ur'
   })
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState('')
+  const [changingPassword, setChangingPassword] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -126,6 +136,47 @@ export default function ProfilePage() {
     redirect('/')
   }
 
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    setPasswordError('')
+    setPasswordSuccess('')
+
+    // Validate passwords
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('New passwords do not match')
+      return
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters long')
+      return
+    }
+
+    setChangingPassword(true)
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: passwordData.newPassword
+      })
+
+      if (error) {
+        setPasswordError(error.message)
+      } else {
+        setPasswordSuccess('Password updated successfully!')
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        })
+      }
+    } catch (error) {
+      setPasswordError('An unexpected error occurred')
+    } finally {
+      setChangingPassword(false)
+    }
+  }
+
   if (authLoading || loading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>
   }
@@ -162,136 +213,277 @@ export default function ProfilePage() {
             </p>
           </div>
 
-          <div className="grid gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Information</CardTitle>
-                <CardDescription>
-                  Update your personal information and preferences
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {message && (
-                    <Alert variant={message.includes('successfully') ? 'default' : 'destructive'}>
-                      <AlertDescription>{message}</AlertDescription>
-                    </Alert>
-                  )}
+          <Tabs defaultValue="profile" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="profile" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Profile
+              </TabsTrigger>
+              <TabsTrigger value="security" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Security
+              </TabsTrigger>
+              {/* <TabsTrigger value="notifications" className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Notifications
+              </TabsTrigger> */}
+            </TabsList>
 
-                  <div className="grid gap-4 md:grid-cols-2">
+            <TabsContent value="profile" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Account Information</CardTitle>
+                  <CardDescription>
+                    Update your personal information and preferences
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    {message && (
+                      <Alert variant={message.includes('successfully') ? 'default' : 'destructive'}>
+                        <AlertDescription>{message}</AlertDescription>
+                      </Alert>
+                    )}
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="full_name">Full Name</Label>
+                        <Input
+                          id="full_name"
+                          value={formData.full_name}
+                          onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                          placeholder="Enter your full name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="username">Username</Label>
+                        <Input
+                          id="username"
+                          value={formData.username}
+                          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                          placeholder="Choose a username"
+                        />
+                      </div>
+                    </div>
+
                     <div className="space-y-2">
-                      <Label htmlFor="full_name">Full Name</Label>
+                      <Label htmlFor="email">Email</Label>
                       <Input
-                        id="full_name"
-                        value={formData.full_name}
-                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                        placeholder="Enter your full name"
+                        id="email"
+                        value={user?.email || ''}
+                        disabled
+                        className="bg-muted"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Email cannot be changed from this page
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="bio">Bio</Label>
+                      <Textarea
+                        id="bio"
+                        value={formData.bio}
+                        onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                        placeholder="Tell us about yourself..."
+                        rows={3}
                       />
                     </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="location">Location</Label>
+                        <Input
+                          id="location"
+                          value={formData.location}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                          placeholder="City, Province"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="language">Preferred Language</Label>
+                        <Select 
+                          value={formData.preferred_language} 
+                          onValueChange={(value: 'en' | 'ur') => setFormData({ ...formData, preferred_language: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="en">English</SelectItem>
+                            <SelectItem value="ur">اردو (Urdu)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4 pt-4">
+                      <Button type="submit" disabled={saving} className="flex items-center gap-2">
+                        <Save className="h-4 w-4" />
+                        {saving ? 'Saving...' : 'Save Changes'}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Account Status</CardTitle>
+                  <CardDescription>
+                    Your account verification and participation status
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between py-2">
+                      <span>Account Status</span>
+                      <span className="text-sm text-emerald-600 font-medium">Active</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <span>Verification Status</span>
+                      <span className={`text-sm font-medium ${profile?.is_verified ? 'text-emerald-600' : 'text-yellow-600'}`}>
+                        {profile?.is_verified ? 'Verified' : 'Pending'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <span>Member Since</span>
+                      <span className="text-sm text-muted-foreground">
+                        {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="security" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Change Password</CardTitle>
+                  <CardDescription>
+                    Update your password to keep your account secure
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handlePasswordChange} className="space-y-4">
+                    {passwordError && (
+                      <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>{passwordError}</AlertDescription>
+                      </Alert>
+                    )}
+                    {passwordSuccess && (
+                      <Alert>
+                        <AlertDescription>{passwordSuccess}</AlertDescription>
+                      </Alert>
+                    )}
+
                     <div className="space-y-2">
-                      <Label htmlFor="username">Username</Label>
+                      <Label htmlFor="newPassword">New Password</Label>
                       <Input
-                        id="username"
-                        value={formData.username}
-                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                        placeholder="Choose a username"
+                        id="newPassword"
+                        type="password"
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                        placeholder="Enter new password"
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Must be at least 6 characters long
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                        placeholder="Confirm new password"
+                        required
                       />
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      value={user?.email || ''}
-                      disabled
-                      className="bg-muted"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Email cannot be changed from this page
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="bio">Bio</Label>
-                    <Textarea
-                      id="bio"
-                      value={formData.bio}
-                      onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                      placeholder="Tell us about yourself..."
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="location">Location</Label>
-                      <Input
-                        id="location"
-                        value={formData.location}
-                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        placeholder="City, Province"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="language">Preferred Language</Label>
-                      <Select 
-                        value={formData.preferred_language} 
-                        onValueChange={(value: 'en' | 'ur') => setFormData({ ...formData, preferred_language: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="en">English</SelectItem>
-                          <SelectItem value="ur">اردو (Urdu)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4 pt-4">
-                    <Button type="submit" disabled={saving} className="flex items-center gap-2">
-                      <Save className="h-4 w-4" />
-                      {saving ? 'Saving...' : 'Save Changes'}
+                    <Button type="submit" disabled={changingPassword}>
+                      {changingPassword ? 'Changing Password...' : 'Change Password'}
                     </Button>
-                    <Button type="button" variant="outline" onClick={handleSignOut}>
+                  </form>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Session Management</CardTitle>
+                  <CardDescription>
+                    Manage your active sessions and sign out from all devices
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Current Session</p>
+                      <p className="text-sm text-muted-foreground">
+                        Signed in on {new Date().toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Badge variant="secondary">Active</Badge>
+                  </div>
+                  <div className="pt-4 space-y-2">
+                    <Button variant="outline" onClick={handleSignOut} className="w-full">
                       Sign Out
                     </Button>
+                    <p className="text-xs text-muted-foreground text-center">
+                      This will sign you out from the current device only
+                    </p>
                   </div>
-                </form>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Status</CardTitle>
-                <CardDescription>
-                  Your account verification and participation status
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between py-2">
-                    <span>Account Status</span>
-                    <span className="text-sm text-emerald-600 font-medium">Active</span>
+            <TabsContent value="notifications" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Email Notifications</CardTitle>
+                  <CardDescription>
+                    Choose what updates you want to receive via email
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">Process Updates</p>
+                        <p className="text-sm text-muted-foreground">
+                          Get notified when processes you're participating in have updates
+                        </p>
+                      </div>
+                      <div className="text-sm text-muted-foreground">Coming Soon</div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">Proposal Responses</p>
+                        <p className="text-sm text-muted-foreground">
+                          Receive notifications when your proposals get votes or comments
+                        </p>
+                      </div>
+                      <div className="text-sm text-muted-foreground">Coming Soon</div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">Weekly Digest</p>
+                        <p className="text-sm text-muted-foreground">
+                          Summary of democratic activities in your areas of interest
+                        </p>
+                      </div>
+                      <div className="text-sm text-muted-foreground">Coming Soon</div>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between py-2">
-                    <span>Verification Status</span>
-                    <span className={`text-sm font-medium ${profile?.is_verified ? 'text-emerald-600' : 'text-yellow-600'}`}>
-                      {profile?.is_verified ? 'Verified' : 'Pending'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between py-2">
-                    <span>Member Since</span>
-                    <span className="text-sm text-muted-foreground">
-                      {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
 

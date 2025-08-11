@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { useLanguage } from './language-provider'
 import { useAuth } from '@/lib/auth-context'
 import { Button } from './ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu'
-import { User, LogOut } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu'
+import { User, LogOut, Settings, BarChart3 } from 'lucide-react'
 
 export function MainNav() {
   const { t } = useLanguage()
@@ -41,7 +41,20 @@ export function MainNav() {
               {user.email}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem asChild>
+              <Link href="/profile" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Profile Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                My Dashboard
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2">
               <LogOut className="h-4 w-4" />
               {t('common.logout')}

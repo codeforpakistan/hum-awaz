@@ -11,10 +11,6 @@ export function LanguageSwitcher() {
   const languages = [
     { code: "en", name: "English" },
     { code: "ur", name: "اردو" },
-    { code: "pa", name: "ਪੰਜਾਬੀ" },
-    { code: "sd", name: "سنڌي" },
-    { code: "ps", name: "پښتو" },
-    { code: "bal", name: "بلوچی" },
   ]
 
   return (
