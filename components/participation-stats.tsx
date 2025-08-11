@@ -17,6 +17,7 @@ import {
   Legend,
 } from "recharts"
 import { supabase } from "@/lib/supabase"
+import { useLanguage } from "@/components/language-provider"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
 
@@ -30,6 +31,7 @@ interface Stats {
 }
 
 export function ParticipationStats() {
+  const { language } = useLanguage()
   const [stats, setStats] = useState<Stats>({
     totalUsers: 0,
     totalProcesses: 0,
@@ -85,9 +87,19 @@ export function ParticipationStats() {
         categoryMap.set(process.category, current + (process.participation_count || 0))
       })
 
+      const categoryTranslations: Record<string, string> = {
+        education: language === 'ur' ? 'تعلیم' : 'Education',
+        healthcare: language === 'ur' ? 'صحت' : 'Healthcare',
+        infrastructure: language === 'ur' ? 'انفراسٹرکچر' : 'Infrastructure',
+        economy: language === 'ur' ? 'معیشت' : 'Economy',
+        environment: language === 'ur' ? 'ماحول' : 'Environment',
+        governance: language === 'ur' ? 'حکمرانی' : 'Governance',
+        other: language === 'ur' ? 'دیگر' : 'Other'
+      }
+
       const participationByCategory = Array.from(categoryMap.entries())
         .map(([name, value]) => ({
-          name: name.charAt(0).toUpperCase() + name.slice(1),
+          name: categoryTranslations[name] || name.charAt(0).toUpperCase() + name.slice(1),
           value
         }))
         .sort((a, b) => b.value - a.value)
@@ -110,7 +122,9 @@ export function ParticipationStats() {
   if (loading) {
     return (
       <div className="mt-8 text-center">
-        <p className="text-muted-foreground">Loading statistics...</p>
+        <p className="text-muted-foreground">
+          {language === 'ur' ? 'اعداد و شمار لوڈ ہو رہے ہیں...' : 'Loading statistics...'}
+        </p>
       </div>
     )
   }
@@ -121,38 +135,54 @@ export function ParticipationStats() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Registered Citizens</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {language === 'ur' ? 'رجسٹرڈ شہری' : 'Registered Citizens'}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground mt-1">Active participants</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {language === 'ur' ? 'فعال شرکاء' : 'Active participants'}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Democratic Processes</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {language === 'ur' ? 'جمہوری عمل' : 'Democratic Processes'}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalProcesses}</div>
-            <p className="text-xs text-muted-foreground mt-1">{stats.activeProcesses} active now</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {language === 'ur' ? `${stats.activeProcesses} فعال` : `${stats.activeProcesses} active now`}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Citizen Proposals</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {language === 'ur' ? 'شہری تجاویز' : 'Citizen Proposals'}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalProposals.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground mt-1">Ideas submitted</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {language === 'ur' ? 'جمع شدہ خیالات' : 'Ideas submitted'}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Votes Cast</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {language === 'ur' ? 'کل ووٹ' : 'Total Votes Cast'}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalVotes.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground mt-1">Democratic participation</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {language === 'ur' ? 'جمہوری شرکت' : 'Democratic participation'}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -160,14 +190,22 @@ export function ParticipationStats() {
       {/* Category Breakdown */}
       <Tabs defaultValue="category" className="w-full">
         <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-          <TabsTrigger value="category">By Category</TabsTrigger>
-          <TabsTrigger value="engagement">Engagement Rate</TabsTrigger>
+          <TabsTrigger value="category">
+            {language === 'ur' ? 'زمرہ جات' : 'By Category'}
+          </TabsTrigger>
+          <TabsTrigger value="engagement">
+            {language === 'ur' ? 'شرکت کی شرح' : 'Engagement Rate'}
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="category">
           <Card>
             <CardHeader>
-              <CardTitle>Participation by Policy Area</CardTitle>
-              <CardDescription>Number of citizens engaging with different policy categories</CardDescription>
+              <CardTitle>
+                {language === 'ur' ? 'پالیسی کے شعبے میں شرکت' : 'Participation by Policy Area'}
+              </CardTitle>
+              <CardDescription>
+                {language === 'ur' ? 'مختلف پالیسی زمروں میں شہریوں کی شرکت' : 'Number of citizens engaging with different policy categories'}
+              </CardDescription>
             </CardHeader>
             <CardContent className="h-80">
               {stats.participationByCategory.length > 0 ? (
@@ -182,7 +220,7 @@ export function ParticipationStats() {
                 </ResponsiveContainer>
               ) : (
                 <div className="h-full flex items-center justify-center text-muted-foreground">
-                  No participation data available yet
+                  {language === 'ur' ? 'ابھی تک کوئی شرکت ڈیٹا دستیاب نہیں' : 'No participation data available yet'}
                 </div>
               )}
             </CardContent>
@@ -191,17 +229,21 @@ export function ParticipationStats() {
         <TabsContent value="engagement">
           <Card>
             <CardHeader>
-              <CardTitle>Platform Engagement</CardTitle>
-              <CardDescription>How citizens are engaging with democratic processes</CardDescription>
+              <CardTitle>
+                {language === 'ur' ? 'پلیٹ فارم میں شرکت' : 'Platform Engagement'}
+              </CardTitle>
+              <CardDescription>
+                {language === 'ur' ? 'شہری جمہوری عمل میں کیسے حصہ لے رہے ہیں' : 'How citizens are engaging with democratic processes'}
+              </CardDescription>
             </CardHeader>
             <CardContent className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={[
-                      { name: "Voted on Proposals", value: stats.totalVotes },
-                      { name: "Submitted Proposals", value: stats.totalProposals },
-                      { name: "Registered Only", value: Math.max(0, stats.totalUsers - (stats.totalVotes / 3)) }
+                      { name: language === 'ur' ? "تجاویز پر ووٹ" : "Voted on Proposals", value: stats.totalVotes },
+                      { name: language === 'ur' ? "جمع شدہ تجاویز" : "Submitted Proposals", value: stats.totalProposals },
+                      { name: language === 'ur' ? "صرف رجسٹرڈ" : "Registered Only", value: Math.max(0, stats.totalUsers - (stats.totalVotes / 3)) }
                     ].filter(item => item.value > 0)}
                     cx="50%"
                     cy="50%"
