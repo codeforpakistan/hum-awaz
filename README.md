@@ -100,7 +100,7 @@ notifications   → User alerts and updates
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-org/hum-awaaz.git
+   git clone https://github.com/codeforpakistan/hum-awaaz.git
    cd hum-awaaz
    ```
 
@@ -291,6 +291,7 @@ Hum Awaaz is designed for collaboration with:
 ### **Community Support**
 - **GitHub Issues**: Bug reports and feature requests
 - **Discussions**: Community Q&A and ideas
+- **Live Platform**: [humawaz.codeforpakistan.org](https://humawaz.codeforpakistan.org)
 - **Documentation**: Comprehensive guides and tutorials
 
 ### **Professional Support**
@@ -353,9 +354,9 @@ Special thanks to:
 
 | Resource | Link |
 |----------|------|
-| 🌐 **Live Platform** | [https://hum-awaaz.vercel.app](https://hum-awaaz.vercel.app) |
+| 🌐 **Live Platform** | [https://humawaz.codeforpakistan.org](https://humawaz.codeforpakistan.org) |
 | 📚 **Documentation** | [/docs](./docs) |
 | 🗺️ **Roadmap** | [ROADMAP.md](./ROADMAP.md) |
-| 🐛 **Issues** | [GitHub Issues](https://github.com/your-org/hum-awaaz/issues) |
-| 💬 **Discussions** | [GitHub Discussions](https://github.com/your-org/hum-awaaz/discussions) |
-| 📧 **Contact** | hello@hum-awaaz.com |
+| 🐛 **Issues** | [GitHub Issues](https://github.com/codeforpakistan/hum-awaaz/issues) |
+| 💬 **Discussions** | [GitHub Discussions](https://github.com/codeforpakistan/hum-awaaz/discussions) |
+| 📧 **Contact** | support@humawaaz.pk |

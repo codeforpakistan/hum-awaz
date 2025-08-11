@@ -302,7 +302,7 @@ export default function AboutPage() {
                 </CardHeader>
                 <CardContent className="text-center">
                   <Button asChild variant="outline">
-                    <a href="mailto:info@humawaaz.org">Send Email</a>
+                    <a href="mailto:support@codeforpakistan.org">Send Email</a>
                   </Button>
                 </CardContent>
               </Card>
@@ -315,7 +315,7 @@ export default function AboutPage() {
                 </CardHeader>
                 <CardContent className="text-center">
                   <Button asChild variant="outline">
-                    <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+                    <a href="https://github.com/codeforpakistan/hum-awaaz" target="_blank" rel="noopener noreferrer">
                       View on GitHub
                     </a>
                   </Button>
