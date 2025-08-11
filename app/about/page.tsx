@@ -47,14 +47,14 @@ export default function AboutPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-emerald-50 dark:bg-emerald-950/20">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-emerald-50">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
               <div className="space-y-4">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
                   About Hum Awaaz
                 </h1>
-                <p className="max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
+                <p className="max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   Hum Awaaz (Our Voice) is Pakistan's digital democracy platform, empowering citizens to participate 
                   in democratic processes, deliberate on public issues, and contribute to collective decision-making.
                 </p>
@@ -86,7 +86,7 @@ export default function AboutPage() {
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Our Mission</h2>
-                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
+                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   To strengthen Pakistan's democracy by providing citizens with accessible, transparent, 
                   and secure digital tools for civic participation.
                 </p>
@@ -146,12 +146,12 @@ export default function AboutPage() {
         </section>
 
         {/* How It Works */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-50 dark:bg-gray-900/50">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-50">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">How It Works</h2>
-                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
+                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   Simple steps to make your voice heard in Pakistan's democracy
                 </p>
               </div>
@@ -159,7 +159,7 @@ export default function AboutPage() {
             
             <div className="grid gap-6 lg:grid-cols-4 lg:gap-8 mt-12">
               <div className="flex flex-col items-center text-center space-y-2">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
                   <span className="text-xl font-bold text-emerald-600">1</span>
                 </div>
                 <h3 className="text-lg font-semibold">Register</h3>
@@ -169,7 +169,7 @@ export default function AboutPage() {
               </div>
               
               <div className="flex flex-col items-center text-center space-y-2">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
                   <span className="text-xl font-bold text-emerald-600">2</span>
                 </div>
                 <h3 className="text-lg font-semibold">Explore</h3>
@@ -179,7 +179,7 @@ export default function AboutPage() {
               </div>
               
               <div className="flex flex-col items-center text-center space-y-2">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
                   <span className="text-xl font-bold text-emerald-600">3</span>
                 </div>
                 <h3 className="text-lg font-semibold">Participate</h3>
@@ -189,7 +189,7 @@ export default function AboutPage() {
               </div>
               
               <div className="flex flex-col items-center text-center space-y-2">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
                   <span className="text-xl font-bold text-emerald-600">4</span>
                 </div>
                 <h3 className="text-lg font-semibold">Impact</h3>
@@ -207,7 +207,7 @@ export default function AboutPage() {
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Platform Features</h2>
-                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
+                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   Powerful tools designed for effective democratic participation
                 </p>
               </div>
@@ -282,12 +282,12 @@ export default function AboutPage() {
         </section>
 
         {/* Contact */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-emerald-50 dark:bg-emerald-950/20">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-emerald-50">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Get Involved</h2>
-                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
+                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   Join us in building a stronger democracy for Pakistan
                 </p>
               </div>

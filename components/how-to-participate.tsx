@@ -48,7 +48,7 @@ export function HowToParticipate() {
       {steps.map((step, index) => (
         <Card key={index} className="flex flex-col">
           <CardHeader className="flex flex-row items-center gap-4">
-            <div className="rounded-full p-2 bg-emerald-100 dark:bg-emerald-900/20">{step.icon}</div>
+            <div className="rounded-full p-2 bg-emerald-100">{step.icon}</div>
             <div>
               <CardTitle>{language === 'ur' ? `مرحلہ ${index + 1}` : `Step ${index + 1}`}</CardTitle>
               <CardDescription>{step.title}</CardDescription>

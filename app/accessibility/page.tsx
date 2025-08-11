@@ -206,7 +206,7 @@ export default function AccessibilityPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 bg-emerald-100 dark:bg-emerald-900/20 rounded flex items-center justify-center">
+                  <div className="h-8 w-8 bg-emerald-100 rounded flex items-center justify-center">
                     <span className="text-emerald-600 font-bold text-sm">A</span>
                   </div>
                   <div>
