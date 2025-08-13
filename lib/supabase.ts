@@ -32,6 +32,7 @@ export interface Process {
   created_by?: string
   organization?: string
   participation_count: number
+  is_approved: boolean
   created_at: string
   updated_at: string
 }
@@ -47,6 +48,7 @@ export interface Proposal {
   status: 'pending' | 'approved' | 'rejected' | 'implemented'
   vote_count: number
   support_percentage: number
+  is_approved: boolean
   created_at: string
   updated_at: string
 }

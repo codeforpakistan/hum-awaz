@@ -152,13 +152,14 @@ export default function ProcessDetailPage() {
           description: newProposal.description,
           description_ur: newProposal.description_ur || null,
           author_id: user.id,
-          status: 'pending'
+          status: 'pending',
+          is_approved: false
         })
 
       if (error) {
         setError('Failed to submit proposal')
       } else {
-        setSuccess('Proposal submitted successfully!')
+        setSuccess('Proposal submitted successfully! It will appear publicly after review and approval.')
         setNewProposal({ title: '', title_ur: '', description: '', description_ur: '' })
         await fetchProcessData()
         

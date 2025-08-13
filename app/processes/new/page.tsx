@@ -56,7 +56,8 @@ export default function NewProcessPage() {
           organization: formData.organization || null,
           end_date: formData.end_date,
           status: 'active',
-          created_by: user.id
+          created_by: user.id,
+          is_approved: false
         })
         .select()
         .single()
@@ -65,7 +66,7 @@ export default function NewProcessPage() {
         setError('Failed to create process')
         console.error('Error creating process:', error)
       } else {
-        setSuccess('Process created successfully!')
+        setSuccess('Process created successfully! It will be publicly visible after review and approval.')
         setTimeout(() => {
           router.push(`/processes/${data.id}`)
         }, 1000)
