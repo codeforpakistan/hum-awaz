@@ -94,4 +94,90 @@ export interface Notification {
   related_proposal_id?: string
   is_read: boolean
   created_at: string
+}
+
+// Participatory Budgeting Types
+export interface Budget {
+  id: string
+  process_id?: string
+  title: string
+  title_ur?: string
+  description: string
+  description_ur?: string
+  total_amount: number
+  currency: string
+  fiscal_year: number
+  start_date: string
+  end_date: string
+  status: 'draft' | 'active' | 'voting' | 'closed' | 'approved'
+  created_by?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface BudgetCategory {
+  id: string
+  budget_id: string
+  name: string
+  name_ur?: string
+  description?: string
+  description_ur?: string
+  icon?: string
+  color?: string
+  min_amount: number
+  max_amount?: number
+  suggested_amount?: number
+  order_index: number
+  created_at: string
+}
+
+export interface BudgetProposal {
+  id: string
+  budget_id: string
+  category_id: string
+  title: string
+  title_ur?: string
+  description: string
+  description_ur?: string
+  estimated_cost: number
+  location?: string
+  location_ur?: string
+  beneficiaries?: number
+  submitted_by?: string
+  status: 'pending' | 'approved' | 'rejected' | 'selected' | 'implemented'
+  admin_notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface BudgetVote {
+  id: string
+  budget_id: string
+  user_id: string
+  created_at: string
+  updated_at: string
+}
+
+export interface BudgetVoteAllocation {
+  id: string
+  vote_id: string
+  category_id: string
+  amount: number
+  created_at: string
+}
+
+export interface BudgetProposalVote {
+  id: string
+  proposal_id: string
+  user_id: string
+  support: boolean
+  created_at: string
+}
+
+export interface BudgetAllocationSummary {
+  category_id: string
+  category_name: string
+  total_allocated: number
+  vote_count: number
+  average_allocation: number
 } 

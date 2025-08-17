@@ -22,6 +22,7 @@ export function MainNav() {
     { href: '/', label: t('nav.home') },
     { href: '/processes', label: t('nav.processes') },
     { href: '/proposals', label: t('nav.proposals') },
+    { href: '/budgets', label: t('nav.budgets') },
     { href: '/discussions', label: t('nav.discussions') },
     { href: '/about', label: t('nav.about') },
   ]
