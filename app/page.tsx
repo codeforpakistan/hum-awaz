@@ -1,22 +1,29 @@
-'use client'
+'use client';
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { LanguageSwitcher } from "@/components/language-switcher"
-import { MainNav } from "@/components/main-nav"
-import { ActiveProcesses } from "@/components/active-processes"
-import { ParticipationStats } from "@/components/participation-stats"
-import { HowToParticipate } from "@/components/how-to-participate"
-import { Footer } from "@/components/footer"
-import { ChevronRight, Users, BarChart3, Vote } from "lucide-react"
-import Link from "next/link"
-import { useLanguage } from "@/components/language-provider"
-import { useAuth } from "@/lib/auth-context"
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { LanguageSwitcher } from '@/components/language-switcher';
+import { MainNav } from '@/components/main-nav';
+import { ActiveProcesses } from '@/components/active-processes';
+import { ParticipationStats } from '@/components/participation-stats';
+import { HowToParticipate } from '@/components/how-to-participate';
+import { Footer } from '@/components/footer';
+import { ShareButton } from '@/components/share-button';
+import { ChevronRight, Users, BarChart3, Vote } from 'lucide-react';
+import Link from 'next/link';
+import { useLanguage } from '@/components/language-provider';
+import { useAuth } from '@/lib/auth-context';
 
 export default function Home() {
-  const { t } = useLanguage()
-  const { user } = useAuth()
-  
+  const { t } = useLanguage();
+  const { user } = useAuth();
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -68,6 +75,17 @@ export default function Home() {
                   <Button asChild variant="outline" size="lg">
                     <Link href="/about">{t('home.hero.learnMore')}</Link>
                   </Button>
+                  <ShareButton
+                    url={
+                      typeof window !== 'undefined'
+                        ? window.location.origin
+                        : ''
+                    }
+                    title="Hum Awaaz - Digital Democracy Platform"
+                    description="Join Pakistan's digital democracy platform for civic participation and democratic processes"
+                    variant="outline"
+                    size="lg"
+                  />
                 </div>
               </div>
               <div className="flex justify-center">
@@ -87,9 +105,12 @@ export default function Home() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Active Consultations</h2>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                  Active Consultations
+                </h2>
                 <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Join ongoing discussions and proposals that shape Pakistan&apos;s future
+                  Join ongoing discussions and proposals that shape
+                  Pakistan&apos;s future
                 </p>
               </div>
             </div>
@@ -110,8 +131,9 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                   <p>
-                    With support for multiple languages including Urdu and English, and
-                    accessibility features for users with different needs.
+                    With support for multiple languages including Urdu and
+                    English, and accessibility features for users with different
+                    needs.
                   </p>
                 </CardContent>
               </Card>
@@ -119,12 +141,15 @@ export default function Home() {
                 <CardHeader>
                   <BarChart3 className="h-8 w-8 text-emerald-600 mb-2" />
                   <CardTitle>{t('features.transparent.title')}</CardTitle>
-                  <CardDescription>{t('features.transparent.description')}</CardDescription>
+                  <CardDescription>
+                    {t('features.transparent.description')}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p>
-                    Track the progress of initiatives, see who supports them, and monitor how they transform from ideas
-                    to action with complete transparency.
+                    Track the progress of initiatives, see who supports them,
+                    and monitor how they transform from ideas to action with
+                    complete transparency.
                   </p>
                 </CardContent>
               </Card>
@@ -132,12 +157,15 @@ export default function Home() {
                 <CardHeader>
                   <Vote className="h-8 w-8 text-emerald-600 mb-2" />
                   <CardTitle>{t('features.secure.title')}</CardTitle>
-                  <CardDescription>{t('features.secure.description')}</CardDescription>
+                  <CardDescription>
+                    {t('features.secure.description')}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p>
-                    Our secure voting system ensures that your opinion counts while protecting your privacy and the
-                    integrity of the democratic process.
+                    Our secure voting system ensures that your opinion counts
+                    while protecting your privacy and the integrity of the
+                    democratic process.
                   </p>
                 </CardContent>
               </Card>
@@ -179,5 +207,5 @@ export default function Home() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }
