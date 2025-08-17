@@ -27,11 +27,26 @@ export interface Process {
   description_ur?: string
   status: 'draft' | 'active' | 'closed' | 'completed'
   category: 'education' | 'healthcare' | 'infrastructure' | 'economy' | 'environment' | 'governance' | 'other'
+  process_type: 'consultation' | 'initiative' | 'assembly' | 'poll' | 'petition' | 'budget' | 'debate'
+  scope: 'federal' | 'provincial' | 'city' | 'district' | 'community'
   start_date: string
   end_date: string
   created_by?: string
   organization?: string
   participation_count: number
+  signature_threshold: number
+  current_signatures: number
+  signature_deadline?: string
+  response_required: boolean
+  response_deadline?: string
+  government_response?: string
+  government_response_ur?: string
+  response_date?: string
+  visibility: 'public' | 'restricted' | 'private'
+  participation_method: 'open' | 'invited' | 'random_selection' | 'application'
+  min_participants: number
+  max_participants?: number
+  verification_required: boolean
   is_approved: boolean
   created_at: string
   updated_at: string
@@ -180,4 +195,104 @@ export interface BudgetAllocationSummary {
   total_allocated: number
   vote_count: number
   average_allocation: number
-} 
+}
+
+// Enhanced Democratic Features (Based on Decidim & Polis)
+export interface ProcessSignature {
+  id: string
+  process_id: string
+  user_id: string
+  signature_type: 'support' | 'endorsement' | 'participation_request'
+  comment?: string
+  comment_ur?: string
+  verified: boolean
+  created_at: string
+}
+
+export interface ProcessPhase {
+  id: string
+  process_id: string
+  title: string
+  title_ur?: string
+  description?: string
+  description_ur?: string
+  phase_type: 'information' | 'debate' | 'proposal' | 'voting' | 'implementation' | 'evaluation'
+  start_date: string
+  end_date: string
+  is_active: boolean
+  order_index: number
+  created_at: string
+}
+
+export interface Meeting {
+  id: string
+  process_id?: string
+  title: string
+  title_ur?: string
+  description?: string
+  description_ur?: string
+  location?: string
+  location_ur?: string
+  online_meeting_url?: string
+  meeting_type: 'in_person' | 'online' | 'hybrid'
+  start_time: string
+  end_time: string
+  max_attendees?: number
+  registration_required: boolean
+  registration_deadline?: string
+  agenda?: string
+  agenda_ur?: string
+  minutes?: string
+  minutes_ur?: string
+  organizer_id: string
+  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
+  created_at: string
+  updated_at: string
+}
+
+export interface MeetingAttendee {
+  id: string
+  meeting_id: string
+  user_id: string
+  registration_date: string
+  attendance_status: 'registered' | 'attended' | 'no_show' | 'cancelled'
+  check_in_time?: string
+}
+
+export interface UserRole {
+  id: string
+  user_id: string
+  role: 'citizen' | 'government_admin' | 'moderator' | 'facilitator' | 'observer'
+  scope?: 'platform' | 'process' | 'component'
+  resource_id?: string
+  granted_by?: string
+  granted_at: string
+  expires_at?: string
+  is_active: boolean
+}
+
+export interface ProcessFollower {
+  id: string
+  process_id: string
+  user_id: string
+  notification_preferences: {
+    email: boolean
+    push: boolean
+  }
+  followed_at: string
+}
+
+// Enhanced Process Types
+export type ProcessType = 'consultation' | 'initiative' | 'assembly' | 'poll' | 'petition' | 'budget' | 'debate'
+export type ProcessScope = 'federal' | 'provincial' | 'city' | 'district' | 'community'
+export type ParticipationMethod = 'open' | 'invited' | 'random_selection' | 'application'
+export type ProcessVisibility = 'public' | 'restricted' | 'private'
+
+// Process with enhanced features
+export interface ProcessWithSignatures extends Process {
+  signatures?: ProcessSignature[]
+  signature_progress?: number
+  phases?: ProcessPhase[]
+  meetings?: Meeting[]
+  followers?: ProcessFollower[]
+}
