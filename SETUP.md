@@ -13,7 +13,7 @@
 ```bash
 git clone <your-repo-url>
 cd hum-awaaz
-npm install
+pnpm install
 ```
 
 2. Copy the environment variables:
@@ -42,7 +42,7 @@ cp .env.example .env.local
 ## Running the Application
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Visit `http://localhost:3000` to see the application.
@@ -151,7 +151,7 @@ hum-awaaz/
    - Check RLS policies in Supabase
 
 3. **Styling issues**:
-   - Run `npm install` to ensure all dependencies are installed
+   - Run `pnpm install` to ensure all dependencies are installed
    - Check Tailwind configuration
 
 ## Support
