@@ -1,12 +1,13 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { LanguageProvider } from "@/components/language-provider"
-import { AuthProvider } from "@/lib/auth-context"
-import { Analytics } from "@vercel/analytics/next"
+import type React from 'react';
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { LanguageProvider } from '@/components/language-provider';
+import { AuthProvider } from '@/lib/auth-context';
+import { Analytics } from '@vercel/analytics/next';
+import { Toaster } from 'sonner';
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: "hum awaz | Digital Democracy Platform",
@@ -17,15 +18,25 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <LanguageProvider>{children}</LanguageProvider>
+          <LanguageProvider>
+            {children}
+            <Toaster
+              position="bottom-center"
+              richColors
+              offset={{
+                top: 15,
+              }}
+              visibleToasts={1}
+            />
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>
-  )
+  );
 }

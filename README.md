@@ -92,7 +92,7 @@ notifications   → User alerts and updates
 ## 🚀 Getting Started
 
 ### **Prerequisites**
-- Node.js 18+ and npm/yarn
+- Node.js 18+ and pnpm
 - Supabase account and project
 - Git for version control
 
@@ -106,9 +106,7 @@ notifications   → User alerts and updates
 
 2. **Install dependencies**
    ```bash
-   npm install
-   # or
-   yarn install
+   pnpm install
    ```
 
 3. **Environment Setup**
@@ -133,9 +131,7 @@ notifications   → User alerts and updates
 
 5. **Run Development Server**
    ```bash
-   npm run dev
-   # or
-   yarn dev
+   pnpm run dev
    ```
 
 6. **Open Application**
