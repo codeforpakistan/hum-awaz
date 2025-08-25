@@ -22,7 +22,7 @@ export default function TermsPage() {
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center space-x-2">
               <Vote className="h-6 w-6 text-emerald-600" />
-              <span className="font-bold text-xl">hum awaz</span>
+              <span className="font-bold text-xl">Hum Awaz</span>
             </Link>
             <MainNav />
           </div>
@@ -56,7 +56,7 @@ export default function TermsPage() {
             <p className="text-muted-foreground">
               {isUrdu 
                 ? 'ہم آواز پلیٹ فارم استعمال کرنے کے لیے شرائط'
-                : 'Terms and conditions for using the hum awaz platform'
+                : 'Terms and conditions for using the Hum Awaz platform'
               }
             </p>
             <p className="text-sm text-muted-foreground">
@@ -138,7 +138,7 @@ export default function TermsPage() {
               <>
                 <h2>1. Acceptance of Terms</h2>
                 <p>
-                  hum awaz is a civic participation platform that facilitates democratic participation in Pakistan. 
+                  Hum Awaz is a civic participation platform that facilitates democratic participation in Pakistan. 
                   By using this platform, you agree to these terms and conditions.
                 </p>
 
@@ -176,7 +176,7 @@ export default function TermsPage() {
 
                 <h2>6. Limitation of Liability</h2>
                 <p>
-                  hum awaz provides a platform only. We do not endorse all user opinions or proposals. 
+                  Hum Awaz provides a platform only. We do not endorse all user opinions or proposals. 
                   We are not responsible for government decisions or their outcomes.
                 </p>
 

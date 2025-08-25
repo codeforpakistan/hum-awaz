@@ -22,7 +22,7 @@ export default function PrivacyPage() {
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center space-x-2">
               <Vote className="h-6 w-6 text-emerald-600" />
-              <span className="font-bold text-xl">hum awaz</span>
+              <span className="font-bold text-xl">Hum Awaz</span>
             </Link>
             <MainNav />
           </div>
@@ -164,7 +164,7 @@ export default function PrivacyPage() {
               <>
                 <h2>1. Information We Collect</h2>
                 <p>
-                  On the hum awaz platform, we collect various types of information:
+                  On the Hum Awaz platform, we collect various types of information:
                 </p>
                 <ul>
                   <li><strong>Account Information:</strong> Name, email address, phone number</li>

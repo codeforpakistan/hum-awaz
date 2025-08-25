@@ -54,7 +54,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Home page
     "home.hero.title": "Your Voice Matters in Pakistan's Democracy",
-    "home.hero.subtitle": "hum awaz empowers citizens to participate in democratic processes, deliberate on public issues, and contribute to collective decision-making.",
+    "home.hero.subtitle": "Hum Awaz empowers citizens to participate in democratic processes, deliberate on public issues, and contribute to collective decision-making.",
     "home.hero.explore": "Explore Active Processes",
     "home.hero.learnMore": "Learn More",
     
@@ -113,7 +113,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // How to participate
     "howTo.title": "How to Participate",
-    "howTo.subtitle": "Getting started with hum awaz is easy",
+    "howTo.subtitle": "Getting started with Hum Awaz is easy",
     
     // Participatory Budgeting
     "participatoryBudgets": "Participatory Budgets",

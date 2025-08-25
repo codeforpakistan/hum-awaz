@@ -10,7 +10,7 @@ import { Toaster } from 'sonner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "hum awaz | Digital Democracy Platform",
+  title: "Hum Awaz | Digital Democracy Platform",
   description: "A digital democracy platform for civic participation in Pakistan",
     generator: 'v0.dev'
 }

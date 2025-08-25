@@ -1,4 +1,4 @@
-# hum awaz - Setup Instructions
+# Hum Awaz - Setup Instructions
 
 ## Prerequisites
 

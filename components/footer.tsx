@@ -9,7 +9,7 @@ export function Footer() {
           <Vote className="h-6 w-6 text-emerald-600" />
           <div className="flex flex-col items-center gap-2 md:items-start">
             <p className="text-center text-sm leading-loose md:text-left">
-              &copy; {new Date().getFullYear()} hum awaz. All rights reserved.
+              &copy; {new Date().getFullYear()} Hum Awaz. All rights reserved.
             </p>
             <p className="text-center text-xs text-muted-foreground md:text-left">
               Built with ❤️ by{" "}
