@@ -1,8 +1,8 @@
-# Hum Awaaz Platform Roadmap
+# hum awaz Platform Roadmap
 
 ## Executive Summary
 
-This roadmap outlines the strategic development of Hum Awaaz as a world-class participatory democracy platform, informed by analysis of leading platforms like Decidim and tailored for the Pakistani context.
+This roadmap outlines the strategic development of hum awaz as a world-class participatory democracy platform, informed by analysis of leading platforms like Decidim and tailored for the Pakistani context.
 
 ## Current State Analysis
 
@@ -296,7 +296,7 @@ This roadmap outlines the strategic development of Hum Awaaz as a world-class pa
 
 ## Conclusion
 
-This roadmap positions Hum Awaaz to become Pakistan's premier participatory democracy platform, combining international best practices with local cultural context. By focusing on high-impact features like participatory budgeting and enhanced voting systems, while maintaining accessibility and cultural sensitivity, the platform can drive meaningful democratic engagement across Pakistan.
+This roadmap positions hum awaz to become Pakistan's premier participatory democracy platform, combining international best practices with local cultural context. By focusing on high-impact features like participatory budgeting and enhanced voting systems, while maintaining accessibility and cultural sensitivity, the platform can drive meaningful democratic engagement across Pakistan.
 
 The phased approach ensures sustainable development while allowing for iterative feedback and improvement. Success will be measured not just by technical metrics, but by real democratic impact: increased citizen participation, improved government responsiveness, and stronger democratic institutions.
 

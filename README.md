@@ -1,8 +1,8 @@
-# 🗳️ Hum Awaaz - Voice of the People
+# 🗳️ hum awaz - Voice of the People
 
 **Pakistan's Premier Participatory Democracy Platform**
 
-Hum Awaaz (حم آواز) empowers Pakistani citizens to actively participate in democratic processes through digital consultations, proposal submissions, and collaborative decision-making. Built for transparency, accessibility, and meaningful civic engagement.
+hum awaz (حم آواز) empowers Pakistani citizens to actively participate in democratic processes through digital consultations, proposal submissions, and collaborative decision-making. Built for transparency, accessibility, and meaningful civic engagement.
 
 ---
 
@@ -176,7 +176,7 @@ hum-awaaz/
 ## 🌟 Key Features Deep Dive
 
 ### **Participatory Democracy**
-Hum Awaaz implements modern participatory democracy principles:
+hum awaz implements modern participatory democracy principles:
 - **Deliberative Process**: Structured discussions before voting
 - **Inclusive Participation**: Multi-language accessibility
 - **Transparent Governance**: Open process and result tracking
@@ -277,7 +277,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🏛️ Government Partnerships
 
-Hum Awaaz is designed for collaboration with:
+hum awaz is designed for collaboration with:
 - **Federal Government**: National policy consultations
 - **Provincial Governments**: Regional governance initiatives  
 - **Local Governments**: Community-level decision making
@@ -307,7 +307,7 @@ For government organizations and large-scale deployments:
 
 **Democratizing Democracy in Pakistan**
 
-Hum Awaaz envisions a Pakistan where every citizen has a meaningful voice in governance. Through accessible technology, transparent processes, and inclusive participation, we're building the digital infrastructure for 21st-century democracy.
+hum awaz envisions a Pakistan where every citizen has a meaningful voice in governance. Through accessible technology, transparent processes, and inclusive participation, we're building the digital infrastructure for 21st-century democracy.
 
 Our platform bridges the gap between citizens and government, fostering:
 - **Active Civic Engagement**: Beyond voting to continuous participation
@@ -346,7 +346,7 @@ Special thanks to:
 
 *Built with ❤️ for the people of Pakistan*
 
-**Hum Awaaz - حم آواز - Voice of the People**
+**hum awaz - حم آواز - Voice of the People**
 
 ---
 

@@ -35,7 +35,7 @@ export default function ContactPage() {
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center space-x-2">
               <Vote className="h-6 w-6 text-emerald-600" />
-              <span className="font-bold text-xl">Hum Awaaz</span>
+              <span className="font-bold text-xl">hum awaz</span>
             </Link>
             <MainNav />
           </div>

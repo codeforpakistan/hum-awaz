@@ -114,7 +114,7 @@ export default function BudgetsPage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Link href="/" className="text-2xl font-bold text-primary mr-8">
-                Hum Awaaz
+                hum awaz
               </Link>
               <MainNav />
             </div>

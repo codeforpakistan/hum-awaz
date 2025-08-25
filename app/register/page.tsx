@@ -51,7 +51,7 @@ export default function RegisterPage() {
         <div className="text-center">
           <Link href="/" className="flex items-center justify-center space-x-2 mb-8">
             <Vote className="h-8 w-8 text-emerald-600" />
-            <span className="font-bold text-2xl">Hum Awaaz</span>
+            <span className="font-bold text-2xl">hum awaz</span>
           </Link>
           <h2 className="text-3xl font-bold">{t('auth.signUp')}</h2>
           <p className="mt-2 text-gray-600">

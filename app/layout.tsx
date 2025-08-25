@@ -9,7 +9,7 @@ import { Analytics } from "@vercel/analytics/next"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Hum Awaaz | Digital Democracy Platform",
+  title: "hum awaz | Digital Democracy Platform",
   description: "A digital democracy platform for civic participation in Pakistan",
     generator: 'v0.dev'
 }

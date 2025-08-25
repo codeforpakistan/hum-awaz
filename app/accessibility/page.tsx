@@ -98,7 +98,7 @@ export default function AccessibilityPage() {
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center space-x-2">
               <Vote className="h-6 w-6 text-emerald-600" />
-              <span className="font-bold text-xl">Hum Awaaz</span>
+              <span className="font-bold text-xl">hum awaz</span>
             </Link>
             <MainNav />
           </div>
@@ -135,7 +135,7 @@ export default function AccessibilityPage() {
             <p className="text-muted-foreground max-w-3xl mx-auto">
               {isUrdu 
                 ? 'ہم آواز ہر پاکستانی شہری کے لیے قابل رسائی ہے۔ ہم یقینی بناتے ہیں کہ مختلف قسم کی ضروریات والے افراد آسانی سے اس پلیٹ فارم کا استعمال کر سکیں'
-                : 'Hum Awaaz is accessible to every Pakistani citizen. We ensure that people with different needs can easily use this platform'
+                : 'hum awaz is accessible to every Pakistani citizen. We ensure that people with different needs can easily use this platform'
               }
             </p>
           </div>

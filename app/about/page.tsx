@@ -21,7 +21,7 @@ export default function AboutPage() {
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center space-x-2">
               <Vote className="h-6 w-6 text-emerald-600" />
-              <span className="font-bold text-xl">Hum Awaaz</span>
+              <span className="font-bold text-xl">hum awaz</span>
             </Link>
             <MainNav />
           </div>
@@ -52,10 +52,10 @@ export default function AboutPage() {
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
               <div className="space-y-4">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                  About Hum Awaaz
+                  About hum awaz
                 </h1>
                 <p className="max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Hum Awaaz (Our Voice) is Pakistan's digital democracy platform, empowering citizens to participate 
+                  hum awaz (Our Voice) is Pakistan's digital democracy platform, empowering citizens to participate 
                   in democratic processes, deliberate on public issues, and contribute to collective decision-making.
                 </p>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
