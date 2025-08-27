@@ -342,7 +342,7 @@ Special thanks to:
 
 *Built with ❤️ for the people of Pakistan*
 
-**Hum Awaz - حم آواز - Voice of the People**
+**Hum Awaz - ہم آواز - Voice of the People**
 
 ---
 
