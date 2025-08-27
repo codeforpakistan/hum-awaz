@@ -40,7 +40,7 @@ export default function DiscussionsPage() {
           *,
           process:processes(*)
         `)
-        .eq('status', 'submitted')
+        .eq('status', 'approved')
         .order('created_at', { ascending: false })
 
       if (proposalsError) {

@@ -50,7 +50,7 @@ export default function ProposalsPage() {
           *,
           process:processes(*)
         `)
-.in('status', ['pending', 'approved'])
+.eq('status', 'approved')
         .order('created_at', { ascending: false })
 
       if (proposalsError) {

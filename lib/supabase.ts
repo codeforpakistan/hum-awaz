@@ -47,7 +47,6 @@ export interface Process {
   min_participants: number
   max_participants?: number
   verification_required: boolean
-  is_approved: boolean
   created_at: string
   updated_at: string
 }
@@ -60,10 +59,9 @@ export interface Proposal {
   description: string
   description_ur?: string
   author_id: string
-  status: 'pending' | 'approved' | 'rejected' | 'implemented'
+  status: 'under_review' | 'pending' | 'approved' | 'rejected' | 'implemented'
   vote_count: number
   support_percentage: number
-  is_approved: boolean
   created_at: string
   updated_at: string
 }

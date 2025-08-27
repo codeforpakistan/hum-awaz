@@ -102,7 +102,7 @@ export default function ProcessDetailPage() {
         .from('proposals')
         .select('*')
         .eq('process_id', processId)
-        .in('status', ['pending', 'approved'])
+        .eq('status', 'approved')
         .order('created_at', { ascending: false });
 
       setProposals(proposalsData || []);
@@ -173,8 +173,7 @@ export default function ProcessDetailPage() {
         description: newProposal.description,
         description_ur: newProposal.description_ur || null,
         author_id: user.id,
-        status: 'pending',
-        is_approved: false,
+        status: 'under_review',
       });
 
       if (error) {
