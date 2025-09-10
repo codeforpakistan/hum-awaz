@@ -2,7 +2,7 @@
 
 **Pakistan's Premier Participatory Democracy Platform**
 
-Hum Awaz (ہم آواز) empowers Pakistani citizens to actively participate in democratic processes through digital consultations, proposal submissions, and collaborative decision-making. Built for transparency, accessibility, and meaningful civic engagement.
+Hum Awaz (حم آواز) empowers Pakistani citizens to actively participate in democratic processes through digital consultations, proposal submissions, and collaborative decision-making. Built for transparency, accessibility, and meaningful civic engagement.
 
 ---
 
@@ -73,7 +73,7 @@ Hum Awaz (ہم آواز) empowers Pakistani citizens to actively participate in 
 ### **Database Schema**
 ```
 profiles         → User profiles and preferences
-processes        → Democratic consultation processes  
+processes        → Democratic consultation processes
 proposals        → Citizen-submitted proposals
 discussions      → Comments and conversations
 votes           → User votes on proposals
@@ -93,7 +93,6 @@ notifications   → User alerts and updates
 
 ### **Prerequisites**
 - Node.js 18+ and pnpm
-- Supabase account and project
 - Git for version control
 
 ### **Installation**
@@ -112,21 +111,41 @@ notifications   → User alerts and updates
 3. **Environment Setup**
    Create `.env.local` file:
    ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   DATABASE_URL="postgresql://postgres:123@localhost:5432/hamnawa?schema=public"
+
+   NEXT_PUBLIC_APP_URL="http://localhost:3000"
+   NEXT_PUBLIC_APP_API_URL="/api"
+
+   # SECRET STRINGS
+   NEXT_JWT_ACCESS_SECRET=""
+   NEXT_JWT_REFRESH_SECRET=""
+
+   NEXT_PUBLIC_APIS="/api/auth/login,/api/auth/register,/api/auth/refresh,/api/public/"
+   NEXT_PUBLIC_ENDPOINTS="/auth/login,/auth/register,/auth/refresh,/public/"
+
+   # FOR GOOGLE OAUTH IF APPLICABLE
+   GOOGLE_CLIENT_ID=""
+   GOOGLE_CLIENT_SECRET=""
+   NODE_ENV='development'
+
    ```
 
 4. **Database Setup**
    ```bash
-   # Run database migrations in order:
-   # 1. Drop existing tables (if any)
-   psql -h your-db-host -d your-db -f supabase/step1-drop-tables.sql
-   
-   # 2. Create schema and tables
-   psql -h your-db-host -d your-db -f supabase/step2-create-schema.sql
-   
-   # 3. Insert sample data
-   psql -h your-db-host -d your-db -f supabase/step3-sample-data.sql
+   # Reset the database
+   pnpx prisma db push --force-reset
+
+   # Generate the migrations
+   pnpx prisma generate
+
+   # Push the migrations to the DB
+   pnpx prisma db push
+
+   # For seeding the development environment
+   pnpx tsx prisma/seed.ts
+
+   # For seeding the production environment if applicable
+   pnpm run db:seed:prod
    ```
 
 5. **Run Development Server**
@@ -136,6 +155,7 @@ notifications   → User alerts and updates
 
 6. **Open Application**
    Navigate to [http://localhost:3000](http://localhost:3000)
+
 
 ---
 
@@ -275,7 +295,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Hum Awaz is designed for collaboration with:
 - **Federal Government**: National policy consultations
-- **Provincial Governments**: Regional governance initiatives  
+- **Provincial Governments**: Regional governance initiatives
 - **Local Governments**: Community-level decision making
 - **Civil Society**: NGO and advocacy group engagement
 - **Academic Institutions**: Research and analysis partnerships
@@ -307,7 +327,7 @@ Hum Awaz envisions a Pakistan where every citizen has a meaningful voice in gove
 
 Our platform bridges the gap between citizens and government, fostering:
 - **Active Civic Engagement**: Beyond voting to continuous participation
-- **Transparent Governance**: Open processes and accountable outcomes  
+- **Transparent Governance**: Open processes and accountable outcomes
 - **Inclusive Decision-Making**: Voices from all communities and backgrounds
 - **Evidence-Based Policy**: Data-driven insights for better governance
 
@@ -342,7 +362,7 @@ Special thanks to:
 
 *Built with ❤️ for the people of Pakistan*
 
-**Hum Awaz - ہم آواز - Voice of the People**
+**Hum Awaz - حم آواز - Voice of the People**
 
 ---
 
