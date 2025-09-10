@@ -1,0 +1,311 @@
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth.js Models (required)
+model Account {
+  id                String  @id @default(cuid())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Custom User Model (extends NextAuth)
+model User {
+  id            Int      @id @default(autoincrement())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime? @db.Timestamptz
+  image         String?
+
+  // Django-like fields
+  username      String?   @unique
+  password      String?   // Only for credentials provider
+  isActive      Boolean   @default(true)
+  lastLogin     DateTime? @db.Timestamptz
+  dateJoined    DateTime  @default(now()) @db.Timestamptz
+
+  // NextAuth relations
+  accounts      Account[]
+  sessions      Session[]
+
+  // Custom relations
+  profile       Profile?
+  userGroups    UserGroup[]
+  createdProcesses Process[] @relation("ProcessCreator")
+  proposals     Proposal[]
+  discussions   Discussion[]
+  votes         Vote[]
+  participations Participation[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+// Profile Model (unchanged)
+model Profile {
+  id          Int      @id @default(autoincrement())
+  firstName   String?
+  lastName    String?
+  phoneNumber String?
+  address     String?
+  dateOfBirth DateTime? @db.Timestamptz
+  avatar      String?
+  bio         String?
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
+
+  userId      Int      @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+// RBAC Models
+model Group {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @db.Timestamptz
+
+  userGroups  UserGroup[]
+  permissions GroupPermission[]
+
+  @@map("groups")
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  name        String
+  codename    String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @db.Timestamptz
+
+  groupPermissions GroupPermission[]
+
+  @@map("permissions")
+}
+
+model UserGroup {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  groupId   Int
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@map("user_groups")
+}
+
+model GroupPermission {
+  id           Int      @id @default(autoincrement())
+  groupId      Int
+  permissionId Int
+  createdAt    DateTime @default(now()) @db.Timestamptz
+
+  group        Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, permissionId])
+  @@map("group_permissions")
+}
+
+model Process {
+  id                   Int          @id @default(autoincrement())
+  title                String       @unique
+  title_ur             String?
+  description          String
+  description_ur       String?
+  status               String       @default("active") @db.VarChar(20)
+  category             String       @db.VarChar(20)
+  process_type         String       @default("consultation") @db.VarChar(20)
+  scope                String       @default("city") @db.VarChar(20)
+  start_date           DateTime     @default(now()) @db.Timestamptz
+  end_date             DateTime     @default(now()) @db.Timestamptz
+  organization         String?      @default("Government Initiative")
+  participation_count  Int          @default(0)
+  signature_threshold  Int          @default(0)
+  current_signatures   Int          @default(0)
+  signature_deadline   DateTime?    @db.Timestamptz
+  response_required    Boolean      @default(false)
+  response_deadline    DateTime?    @db.Timestamptz
+  government_response  String?
+  government_response_ur String?
+  response_date        DateTime?    @db.Timestamptz
+  visibility           String       @default("public") @db.VarChar(20)
+  participation_method String       @default("open") @db.VarChar(20)
+  min_participants     Int          @default(0)
+  max_participants     Int?
+  verification_required Boolean     @default(false)
+  created_at           DateTime     @default(now()) @db.Timestamptz
+  updated_at           DateTime     @default(now()) @db.Timestamptz
+
+  // Relations
+  created_by           Int
+  creator              User         @relation(fields: [created_by], references: [id], name: "ProcessCreator")
+  proposals            Proposal[]
+  discussions          Discussion[]
+  participations       Participation[]
+  notifications        Notification[]
+
+  @@map("processes")
+  @@index([status])
+  @@index([category])
+  @@index([process_type])
+  @@index([scope])
+}
+
+model Proposal {
+  id                 Int          @id @default(autoincrement())
+  title              String       @unique
+  title_ur           String?
+  description        String
+  description_ur     String?
+  status             String       @default("under_review") @db.VarChar(20)
+  vote_count         Int          @default(0)
+  support_percentage Decimal      @default(0) @db.Decimal(5, 2)
+  created_at         DateTime     @default(now()) @db.Timestamptz
+  updated_at         DateTime     @default(now()) @db.Timestamptz
+
+  // Relations
+  process_id         Int
+  process            Process      @relation(fields: [process_id], references: [id], onDelete: Cascade)
+  author_id          Int
+  author             User         @relation(fields: [author_id], references: [id])
+  votes              Vote[]
+  discussions        Discussion[]
+  notifications      Notification[]
+
+  @@map("proposals")
+  @@index([process_id])
+  @@index([author_id])
+  @@index([status])
+}
+
+model Vote {
+  id           Int   @id @default(autoincrement())
+  vote_type    String   @db.VarChar(10)
+  created_at   DateTime @default(now()) @db.Timestamptz
+
+  // Relations
+  user_id      Int
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  proposal_id  Int
+  proposal     Proposal @relation(fields: [proposal_id], references: [id], onDelete: Cascade)
+
+  @@map("votes")
+  @@unique([user_id, proposal_id])
+  @@index([user_id])
+  @@index([proposal_id])
+  @@index([vote_type])
+}
+
+model Discussion {
+  id           Int      @id @default(autoincrement())
+  content      String
+  content_ur   String?
+  likes_count  Int         @default(0)
+  is_pinned    Boolean     @default(false)
+  is_deleted   Boolean     @default(false)
+  created_at   DateTime    @default(now()) @db.Timestamptz
+  updated_at   DateTime    @default(now()) @db.Timestamptz
+
+  // Relations
+  process_id   Int?
+  process      Process?    @relation(fields: [process_id], references: [id], onDelete: Cascade)
+  proposal_id  Int?
+  proposal     Proposal?   @relation(fields: [proposal_id], references: [id], onDelete: Cascade)
+  parent_id    Int?
+  parent       Discussion? @relation("DiscussionReplies", fields: [parent_id], references: [id], onDelete: Cascade)
+  replies      Discussion[] @relation("DiscussionReplies")
+  author_id    Int
+  author       User        @relation(fields: [author_id], references: [id], onDelete: Cascade)
+
+  @@map("discussions")
+  @@index([process_id])
+  @@index([proposal_id])
+  @@index([author_id])
+  @@index([parent_id])
+  @@index([is_pinned])
+}
+
+model Participation {
+  id                 Int   @id @default(autoincrement())
+  participation_type String   @db.VarChar(20)
+  created_at         DateTime @default(now()) @db.Timestamptz
+
+  // Relations
+  user_id            Int
+  user               User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  process_id         Int
+  process            Process  @relation(fields: [process_id], references: [id], onDelete: Cascade)
+
+  @@map("participations")
+  @@unique([user_id, process_id, participation_type])
+  @@index([user_id])
+  @@index([process_id])
+  @@index([participation_type])
+}
+
+model Notification {
+  id                  Int   @id @default(autoincrement())
+  type                String   @db.VarChar(30)
+  title               String
+  message             String
+  is_read             Boolean  @default(false)
+  created_at          DateTime @default(now()) @db.Timestamptz
+
+  // Relations
+  user_id             Int
+  user                User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  related_process_id  Int?
+  related_process     Process? @relation(fields: [related_process_id], references: [id], onDelete: SetNull)
+  related_proposal_id Int?
+  related_proposal    Proposal? @relation(fields: [related_proposal_id], references: [id], onDelete: SetNull)
+
+  @@map("notifications")
+  @@index([user_id])
+  @@index([type])
+  @@index([is_read])
+  @@index([created_at])
+}

@@ -18,7 +18,6 @@ import { MainNav } from '@/components/main-nav';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Footer } from '@/components/footer';
 import { ShareButton } from '@/components/share-button';
-import { useAuth } from '@/lib/auth-context';
 import { useLanguage } from '@/components/language-provider';
 import { supabase, Process } from '@/lib/supabase';
 import {
@@ -31,47 +30,27 @@ import {
   Vote,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useSession, signIn, signOut } from "next-auth/react"
+import { useProcesses } from '@/lib/queries';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function ProcessesPage() {
-  const { user } = useAuth();
+  const { data: session, status } = useSession()
+  const user = session?.user
+
+
   const { t, language } = useLanguage();
-  const [processes, setProcesses] = useState<Process[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  useEffect(() => {
-    fetchProcesses();
-  }, []);
+  const debouncedSearch = useDebounce(searchTerm, 500)
 
-  const fetchProcesses = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('processes')
-        .select('*')
-        .in('status', ['active', 'closed'])
-        .order('created_at', { ascending: false });
+  const effectiveFilters = {
+    search: debouncedSearch,
+    category: selectedCategory,
+  }
 
-      if (error) {
-        console.error('Error fetching processes:', error);
-      } else {
-        setProcesses(data || []);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredProcesses = processes.filter((process) => {
-    const matchesSearch =
-      process.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      process.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      selectedCategory === 'all' || process.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const {data: process_data, isPending} = useProcesses(effectiveFilters)
 
   const getProcessTitle = (process: Process) => {
     return language === 'ur' && process.title_ur
@@ -107,7 +86,7 @@ export default function ProcessesPage() {
     return Math.round((elapsed / total) * 100);
   };
 
-  if (loading) {
+  if (isPending || !process_data) {
     return (
       <div className="flex min-h-screen flex-col">
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -215,6 +194,7 @@ export default function ProcessesPage() {
             defaultValue="all"
             className="mt-6"
             onValueChange={setSelectedCategory}
+            value={selectedCategory}
           >
             <TabsList>
               <TabsTrigger value="all">{t('processes.all')}</TabsTrigger>
@@ -237,7 +217,7 @@ export default function ProcessesPage() {
             </TabsList>
             <TabsContent value="all" className="mt-6">
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredProcesses.map((process) => (
+                {process_data.map((process:any) => (
                   <Card key={process.id} className="flex flex-col">
                     <CardHeader>
                       <div className="flex justify-between items-start">
@@ -321,7 +301,7 @@ export default function ProcessesPage() {
                     </CardFooter>
                   </Card>
                 ))}
-                {filteredProcesses.length === 0 && (
+                {process_data.length === 0 && (
                   <div className="col-span-full text-center py-12">
                     <p className="text-muted-foreground">No processes found</p>
                   </div>
@@ -338,11 +318,12 @@ export default function ProcessesPage() {
             ].map((category) => (
               <TabsContent key={category} value={category} className="mt-6">
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {filteredProcesses.map((process) => (
+                  {process_data.map((process:any) => (
                     <Card key={process.id} className="flex flex-col">
                       <CardHeader>
                         <div className="flex justify-between items-start">
                           <div className="flex items-center gap-2">
+                             {process.id}
                             <Badge
                               variant={
                                 process.status === 'active'
@@ -422,7 +403,7 @@ export default function ProcessesPage() {
                       </CardFooter>
                     </Card>
                   ))}
-                  {filteredProcesses.length === 0 && (
+                  {process_data.length === 0 && (
                     <div className="col-span-full text-center py-12">
                       <p className="text-muted-foreground">
                         No processes found in this category
