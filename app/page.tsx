@@ -27,52 +27,54 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center space-x-2">
-              <Vote className="h-6 w-6 text-emerald-600" />
-              <span className="font-bold text-xl">Hum Awaz</span>
-            </Link>
-            <MainNav />
-          </div>
-          <div className="flex items-center gap-4">
-            <LanguageSwitcher />
-            {user ? (
-              <Button asChild variant="outline" size="sm">
-                <Link href="/dashboard">Dashboard</Link>
-              </Button>
-            ) : (
-              <>
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/login">{t('common.login')}</Link>
+        <div className="container px-4 md:px-8">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center gap-2 md:gap-6">
+              <Link href="/" className="flex items-center space-x-1 md:space-x-2">
+                <Vote className="h-5 w-5 md:h-6 md:w-6 text-emerald-600" />
+                <span className="font-bold text-lg md:text-xl">Hum Awaz</span>
+              </Link>
+              <MainNav />
+            </div>
+            <div className="flex items-center gap-2 md:gap-4">
+              <LanguageSwitcher />
+              {user ? (
+                <Button asChild variant="outline" size="sm" className="hidden md:inline-flex">
+                  <Link href="/dashboard">Dashboard</Link>
                 </Button>
-                <Button asChild size="sm">
-                  <Link href="/register">{t('common.register')}</Link>
-                </Button>
-              </>
-            )}
+              ) : (
+                <div className="hidden md:flex gap-2">
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/login">{t('common.login')}</Link>
+                  </Button>
+                  <Button asChild size="sm">
+                    <Link href="/register">{t('common.register')}</Link>
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-emerald-50">
+        <section className="w-full py-8 sm:py-12 md:py-24 lg:py-32 bg-emerald-50">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
-              <div className="space-y-4">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+              <div className="space-y-4 order-2 lg:order-1">
+                <h1 className="text-2xl font-bold tracking-tighter sm:text-3xl md:text-4xl lg:text-5xl">
                   {t('home.hero.title')}
                 </h1>
-                <p className="max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                <p className="text-base sm:text-lg text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   {t('home.hero.subtitle')}
                 </p>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button asChild size="lg">
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                  <Button asChild size="default" className="w-full sm:w-auto">
                     <Link href="/processes">
                       {t('home.hero.explore')}
                       <ChevronRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
-                  <Button asChild variant="outline" size="lg">
+                  <Button asChild variant="outline" size="default" className="w-full sm:w-auto">
                     <Link href="/about">{t('home.hero.learnMore')}</Link>
                   </Button>
                   <ShareButton
@@ -84,31 +86,30 @@ export default function Home() {
                     title="Hum Awaaz - Digital Democracy Platform"
                     description="Join Pakistan's digital democracy platform for civic participation and democratic processes"
                     variant="outline"
-                    size="lg"
+                    size="default"
+                    className="w-full sm:w-auto"
                   />
                 </div>
               </div>
-              <div className="flex justify-center">
+              <div className="flex justify-center order-1 lg:order-2">
                 <img
                   src="/pakistani-democratic-discussion.png"
                   alt="Pakistani citizens participating in democratic discussion"
-                  className="rounded-lg object-cover aspect-video overflow-hidden"
-                  width={600}
-                  height={400}
+                  className="rounded-lg object-cover aspect-video overflow-hidden w-full max-w-[500px] lg:max-w-[600px]"
                 />
               </div>
             </div>
           </div>
         </section>
 
-        <section className="w-full py-12 md:py-24 lg:py-32">
+        <section className="w-full py-8 sm:py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl md:text-4xl lg:text-5xl">
                   Active Consultations
                 </h2>
-                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                <p className="max-w-[900px] text-base sm:text-lg text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed px-4">
                   Join ongoing discussions and proposals that shape
                   Pakistan&apos;s future
                 </p>
@@ -118,9 +119,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-50">
+        <section className="w-full py-8 sm:py-12 md:py-24 lg:py-32 bg-gray-50">
           <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-3 lg:gap-12">
+            <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 lg:gap-12">
               <Card>
                 <CardHeader>
                   <Users className="h-8 w-8 text-emerald-600 mb-2" />
@@ -173,14 +174,14 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="w-full py-12 md:py-24 lg:py-32">
+        <section className="w-full py-8 sm:py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl md:text-4xl lg:text-5xl">
                   Participation Statistics
                 </h2>
-                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                <p className="max-w-[900px] text-base sm:text-lg text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed px-4">
                   See how Pakistanis are engaging with democratic processes
                 </p>
               </div>
@@ -189,14 +190,14 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-emerald-50">
+        <section className="w-full py-8 sm:py-12 md:py-24 lg:py-32 bg-emerald-50">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl md:text-4xl lg:text-5xl">
                   {t('howTo.title')}
                 </h2>
-                <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                <p className="max-w-[900px] text-base sm:text-lg text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed px-4">
                   {t('howTo.subtitle')}
                 </p>
               </div>

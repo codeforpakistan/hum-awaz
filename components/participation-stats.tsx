@@ -132,54 +132,54 @@ export function ParticipationStats() {
   return (
     <div className="mt-8">
       {/* Key Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-8">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="pb-2 px-3 sm:px-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
               {language === 'ur' ? 'رجسٹرڈ شہری' : 'Registered Citizens'}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
+          <CardContent className="px-3 sm:px-6">
+            <div className="text-xl sm:text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {language === 'ur' ? 'فعال شرکاء' : 'Active participants'}
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="pb-2 px-3 sm:px-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
               {language === 'ur' ? 'جمہوری عمل' : 'Democratic Processes'}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalProcesses}</div>
+          <CardContent className="px-3 sm:px-6">
+            <div className="text-xl sm:text-2xl font-bold">{stats.totalProcesses}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {language === 'ur' ? `${stats.activeProcesses} فعال` : `${stats.activeProcesses} active now`}
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="pb-2 px-3 sm:px-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
               {language === 'ur' ? 'شہری تجاویز' : 'Citizen Proposals'}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalProposals.toLocaleString()}</div>
+          <CardContent className="px-3 sm:px-6">
+            <div className="text-xl sm:text-2xl font-bold">{stats.totalProposals.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {language === 'ur' ? 'جمع شدہ خیالات' : 'Ideas submitted'}
             </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="pb-2 px-3 sm:px-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
               {language === 'ur' ? 'کل ووٹ' : 'Total Votes Cast'}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalVotes.toLocaleString()}</div>
+          <CardContent className="px-3 sm:px-6">
+            <div className="text-xl sm:text-2xl font-bold">{stats.totalVotes.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {language === 'ur' ? 'جمہوری شرکت' : 'Democratic participation'}
             </p>
@@ -207,7 +207,7 @@ export function ParticipationStats() {
                 {language === 'ur' ? 'مختلف پالیسی زمروں میں شہریوں کی شرکت' : 'Number of citizens engaging with different policy categories'}
               </CardDescription>
             </CardHeader>
-            <CardContent className="h-80">
+            <CardContent className="h-60 sm:h-80">
               {stats.participationByCategory.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats.participationByCategory}>
@@ -236,7 +236,7 @@ export function ParticipationStats() {
                 {language === 'ur' ? 'شہری جمہوری عمل میں کیسے حصہ لے رہے ہیں' : 'How citizens are engaging with democratic processes'}
               </CardDescription>
             </CardHeader>
-            <CardContent className="h-80">
+            <CardContent className="h-60 sm:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
