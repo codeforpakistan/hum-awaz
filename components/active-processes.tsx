@@ -9,36 +9,39 @@ import { ChevronRight, Users, Calendar } from "lucide-react"
 import Link from "next/link"
 import { supabase, Process } from '@/lib/supabase'
 import { useLanguage } from './language-provider'
+import { useProcesses } from '@/lib/queries';
 
 export function ActiveProcesses() {
   const [processes, setProcesses] = useState<Process[]>([])
   const [loading, setLoading] = useState(true)
   const { t, language } = useLanguage()
 
-  useEffect(() => {
-    fetchActiveProcesses()
-  }, [])
+  const {data: process_data, isPending} = useProcesses()
 
-  const fetchActiveProcesses = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('processes')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(3)
+  // useEffect(() => {
+  //   fetchActiveProcesses()
+  // }, [])
 
-      if (error) {
-        console.error('Error fetching processes:', error)
-      } else {
-        setProcesses(data || [])
-      }
-    } catch (error) {
-      console.error('Error:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  // const fetchActiveProcesses = async () => {
+  //   try {
+  //     const { data, error } = await supabase
+  //       .from('processes')
+  //       .select('*')
+  //       .eq('status', 'active')
+  //       .order('created_at', { ascending: false })
+  //       .limit(3)
+
+  //     if (error) {
+  //       console.error('Error fetching processes:', error)
+  //     } else {
+  //       setProcesses(data || [])
+  //     }
+  //   } catch (error) {
+  //     console.error('Error:', error)
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
 
   const getProcessTitle = (process: Process) => {
     return language === 'ur' && process.title_ur ? process.title_ur : process.title
@@ -56,7 +59,7 @@ export function ActiveProcesses() {
     return t(`category.${category.toLowerCase()}`)
   }
 
-  if (loading) {
+  if (isPending) {
     return (
       <div className="grid gap-6 mt-8 md:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map((i) => (
@@ -81,7 +84,7 @@ export function ActiveProcesses() {
 
   return (
     <div className="grid gap-6 mt-8 md:grid-cols-2 lg:grid-cols-3">
-      {processes.map((process) => (
+      {process_data.map((process:any) => (
         <Card key={process.id} className="flex flex-col">
           <CardHeader>
             <div className="flex justify-between items-start">
@@ -124,7 +127,7 @@ export function ActiveProcesses() {
           </CardFooter>
         </Card>
       ))}
-      {processes.length === 0 && (
+      {process_data.length === 0 && (
         <div className="col-span-full text-center py-12">
           <p className="text-muted-foreground">No active processes at the moment</p>
         </div>

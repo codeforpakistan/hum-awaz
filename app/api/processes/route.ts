@@ -6,11 +6,6 @@ import prisma from '@/lib/prisma';
 import { processFormSchema } from '@/lib/forms';
 
 export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
 
   const { searchParams } = new URL(request.url);
 
@@ -24,7 +19,7 @@ export async function GET(request: NextRequest) {
   };
 
   // Add search filter
-  if (search.trim()) {
+  if (search.trim() !== '') {
     whereConditions.OR = [
       { title: { contains: search, mode: 'insensitive' } },
       { description: { contains: search, mode: 'insensitive' } },
