@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useLanguage } from './language-provider'
-import { useAuth } from '@/lib/auth-context'
+import { useSession, signOut } from 'next-auth/react'
 import { Button } from './ui/button'
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu'
@@ -11,8 +11,10 @@ import { User, LogOut, BarChart3, Menu } from 'lucide-react'
 
 export function MainNav() {
   const { t } = useLanguage()
-  const { user, signOut } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
+
+  const { data: session, status } = useSession()
+  const user = session?.user
 
   const handleSignOut = async () => {
     await signOut()
@@ -32,15 +34,15 @@ export function MainNav() {
       {/* Desktop Navigation */}
       <nav className="hidden md:flex items-center space-x-6">
         {navLinks.map((link) => (
-          <Link 
+          <Link
             key={link.href}
-            href={link.href} 
+            href={link.href}
             className="text-sm font-medium transition-colors hover:text-primary"
           >
             {link.label}
           </Link>
         ))}
-        
+
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -95,12 +97,12 @@ export function MainNav() {
                   {link.label}
                 </Link>
               ))}
-              
+
               {user ? (
                 <>
                   <div className="border-t pt-4 mt-4">
                     <div className="px-4 py-2 text-sm text-muted-foreground">
-                      {user.email}
+                      {user.name}
                     </div>
                     <Link
                       href="/profile"

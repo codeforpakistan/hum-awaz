@@ -18,11 +18,13 @@ import { ShareButton } from '@/components/share-button';
 import { ChevronRight, Users, BarChart3, Vote } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '@/components/language-provider';
-import { useAuth } from '@/lib/auth-context';
+import { useSession, signOut } from 'next-auth/react'
 
 export default function Home() {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { data: session, status } = useSession()
+  const user = session?.user
+  const handleLogout = () => signOut()
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -33,25 +35,25 @@ export default function Home() {
               <Link href="/" className="flex items-center space-x-1 md:space-x-2">
                 <Vote className="h-5 w-5 md:h-6 md:w-6 text-emerald-600" />
                 <span className="font-bold text-lg md:text-xl">Hum Awaz</span>
-              </Link>
-              <MainNav />
-            </div>
+            </Link>
+            <MainNav />
+          </div>
             <div className="flex items-center gap-2 md:gap-4">
-              <LanguageSwitcher />
-              {user ? (
+            <LanguageSwitcher />
+            {user ? (
                 <Button asChild variant="outline" size="sm" className="hidden md:inline-flex">
-                  <Link href="/dashboard">Dashboard</Link>
-                </Button>
-              ) : (
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+            ) : (
                 <div className="hidden md:flex gap-2">
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/login">{t('common.login')}</Link>
-                  </Button>
-                  <Button asChild size="sm">
-                    <Link href="/register">{t('common.register')}</Link>
-                  </Button>
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/login">{t('common.login')}</Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link href="/register">{t('common.register')}</Link>
+                </Button>
                 </div>
-              )}
+            )}
             </div>
           </div>
         </div>

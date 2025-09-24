@@ -8,107 +8,32 @@ import { Progress } from '@/components/ui/progress'
 import { MainNav } from '@/components/main-nav'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { Footer } from '@/components/footer'
-import { useAuth } from '@/lib/auth-context'
+import { useSession, signIn, signOut } from "next-auth/react"
 import { useLanguage } from '@/components/language-provider'
 import { supabase, Process, Proposal, Profile } from '@/lib/supabase'
 import { Vote, Users, Calendar, TrendingUp, FileText, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useDashboard } from '@/lib/queries'
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth()
+  const { data: session, status } = useSession()
+  const user = session?.user
+
+  const {data: dashboard_data, isPending} = useDashboard()
+
   const { t } = useLanguage()
   const router = useRouter()
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [processes, setProcesses] = useState<Process[]>([])
-  const [proposals, setProposals] = useState<Proposal[]>([])
-  const [stats, setStats] = useState({
-    totalProcesses: 0,
-    activeProcesses: 0,
-    totalProposals: 0,
-    totalVotes: 0
-  })
 
   useEffect(() => {
-    if (!loading && !user) {
+    console.log('>>> User in dashboard:', session);
+    if (status === 'unauthenticated') {
       router.push('/login')
     }
-  }, [user, loading, router])
+  }, [status,router])
 
-  useEffect(() => {
-    if (user) {
-      fetchDashboardData()
-    }
-  }, [user])
 
-  const fetchDashboardData = async () => {
-    if (!user) return
-    try {
-      // Fetch profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-      
-      if (profileData) {
-        setProfile(profileData)
-      }
-
-      // Fetch processes
-      const { data: processesData } = await supabase
-        .from('processes')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(5)
-
-      if (processesData) {
-        setProcesses(processesData)
-      }
-
-      // Fetch user's proposals
-      const { data: proposalsData } = await supabase
-        .from('proposals')
-        .select('*')
-        .eq('author_id', user?.id)
-        .order('created_at', { ascending: false })
-        .limit(5)
-
-      if (proposalsData) {
-        setProposals(proposalsData)
-      }
-
-      // Fetch stats
-      const { count: totalProcesses } = await supabase
-        .from('processes')
-        .select('*', { count: 'exact', head: true })
-
-      const { count: activeProcesses } = await supabase
-        .from('processes')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
-
-      const { count: totalProposals } = await supabase
-        .from('proposals')
-        .select('*', { count: 'exact', head: true })
-
-      const { count: totalVotes } = await supabase
-        .from('votes')
-        .select('*', { count: 'exact', head: true })
-
-      setStats({
-        totalProcesses: totalProcesses || 0,
-        activeProcesses: activeProcesses || 0,
-        totalProposals: totalProposals || 0,
-        totalVotes: totalVotes || 0
-      })
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error)
-    }
-  }
-
-  if (loading) {
+  if (isPending || !dashboard_data) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -119,7 +44,7 @@ export default function DashboardPage() {
     )
   }
 
-  if (!user) {
+  if (!session && isPending) {
     return null
   }
 
@@ -144,7 +69,7 @@ export default function DashboardPage() {
         <div className="container py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back, {profile?.full_name || user.email}</p>
+            <p className="text-muted-foreground">Welcome back, {user?.name || user?.email}</p>
           </div>
 
           {/* Stats */}
@@ -155,9 +80,9 @@ export default function DashboardPage() {
                 <Vote className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.totalProcesses}</div>
+                <div className="text-2xl font-bold">{dashboard_data['totalProcesses']}</div>
                 <p className="text-xs text-muted-foreground">
-                  {stats.activeProcesses} active
+                  {dashboard_data['activeProcesses']} active
                 </p>
               </CardContent>
             </Card>
@@ -168,7 +93,7 @@ export default function DashboardPage() {
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.totalProposals}</div>
+                <div className="text-2xl font-bold">{dashboard_data['totalProposals']}</div>
                 <p className="text-xs text-muted-foreground">
                   Community proposals
                 </p>
@@ -181,7 +106,7 @@ export default function DashboardPage() {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.totalVotes}</div>
+                <div className="text-2xl font-bold">{dashboard_data['totalVotes']}</div>
                 <p className="text-xs text-muted-foreground">
                   Cast by citizens
                 </p>
@@ -194,7 +119,7 @@ export default function DashboardPage() {
                 <MessageSquare className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{proposals.length}</div>
+                <div className="text-2xl font-bold">{dashboard_data['proposals'].length}</div>
                 <p className="text-xs text-muted-foreground">
                   Submitted by you
                 </p>
@@ -211,7 +136,10 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {processes.map((process) => (
+                  {dashboard_data['processes'].length < 1 && !isPending && (
+                    <p className="text-sm text-muted-foreground">No recent processes</p>
+                  )}
+                  {dashboard_data['processes'].map((process: any) => (
                     <div key={process.id} className="flex items-center justify-between">
                       <div className="space-y-1">
                         <p className="text-sm font-medium leading-none">
@@ -224,9 +152,6 @@ export default function DashboardPage() {
                       <Badge variant="outline">{process.status}</Badge>
                     </div>
                   ))}
-                  {processes.length === 0 && (
-                    <p className="text-sm text-muted-foreground">No recent processes</p>
-                  )}
                 </div>
                 <Button asChild className="w-full mt-4">
                   <Link href="/processes">View All Processes</Link>
@@ -241,7 +166,10 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {proposals.map((proposal) => (
+                  {dashboard_data['proposals'].length < 1 && !isPending && (
+                    <p className="text-sm text-muted-foreground">No proposals yet</p>
+                  )}
+                  {dashboard_data['proposals'].map((proposal:any) => (
                     <div key={proposal.id} className="flex items-center justify-between">
                       <div className="space-y-1">
                         <p className="text-sm font-medium leading-none">
@@ -256,9 +184,7 @@ export default function DashboardPage() {
                       </Badge>
                     </div>
                   ))}
-                  {proposals.length === 0 && (
-                    <p className="text-sm text-muted-foreground">No proposals yet</p>
-                  )}
+
                 </div>
                 <Button asChild className="w-full mt-4">
                   <Link href="/proposals">Create New Proposal</Link>
@@ -272,4 +198,4 @@ export default function DashboardPage() {
       <Footer />
     </div>
   )
-} 
+}

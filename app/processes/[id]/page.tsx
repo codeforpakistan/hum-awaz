@@ -12,15 +12,12 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { MainNav } from '@/components/main-nav';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Footer } from '@/components/footer';
 import { ShareButton } from '@/components/share-button';
-import { useAuth } from '@/lib/auth-context';
+import { useSession, signIn, signOut } from "next-auth/react"
 import { useLanguage } from '@/components/language-provider';
 import { supabase, Process, Proposal, Vote, Discussion } from '@/lib/supabase';
 import {
@@ -38,311 +35,21 @@ import {
 } from 'lucide-react';
 
 import Link from 'next/link';
+import { useProcessSingle, useProposals } from '@/lib/queries';
+import { NewProposalForm } from '../components/new-proposal-form';
+import { useCastVote } from '@/lib/mutations';
+import { DiscussionForm } from '../components/discussion-form';
+import { CommentForm } from '../components/comment-form';
 
 export default function ProcessDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const { user } = useAuth();
+  const params = useParams()
+  const process_id = Number(params.id)
+    const { data: session, status } = useSession()
+    const user = session?.user
   const { t, language } = useLanguage();
-  const [process, setProcess] = useState<Process | null>(null);
-  const [proposals, setProposals] = useState<Proposal[]>([]);
-  const [discussions, setDiscussions] = useState<Discussion[]>([]);
-  const [votes, setVotes] = useState<Vote[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [newProposal, setNewProposal] = useState({
-    title: '',
-    title_ur: '',
-    description: '',
-    description_ur: '',
-  });
-  const [newDiscussion, setNewDiscussion] = useState({
-    content: '',
-    content_ur: '',
-  });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [votingLoading, setVotingLoading] = useState<string | null>(null);
-  const [submittingProposal, setSubmittingProposal] = useState(false);
-  const [submittingDiscussion, setSubmittingDiscussion] = useState(false);
-  const [newProposalComment, setNewProposalComment] = useState({
-    content: '',
-    content_ur: '',
-  });
-  const [submittingComment, setSubmittingComment] = useState<string | null>(
-    null
-  );
 
-  useEffect(() => {
-    if (params.id) {
-      fetchProcessData();
-    }
-  }, [params.id]);
-
-  const fetchProcessData = async () => {
-    try {
-      const processId = Array.isArray(params.id) ? params.id[0] : params.id;
-
-      // Fetch process
-      const { data: processData, error: processError } = await supabase
-        .from('processes')
-        .select('*')
-        .eq('id', processId)
-        .single();
-
-      if (processError) {
-        console.error('Error fetching process:', processError);
-        router.push('/processes');
-        return;
-      }
-
-      setProcess(processData);
-
-      // Fetch proposals
-      const { data: proposalsData } = await supabase
-        .from('proposals')
-        .select('*')
-        .eq('process_id', processId)
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false });
-
-      setProposals(proposalsData || []);
-
-      // Fetch votes
-      const { data: votesData } = await supabase
-        .from('votes')
-        .select('*')
-        .in(
-          'proposal_id',
-          (proposalsData || []).map((p) => p.id)
-        );
-
-      setVotes(votesData || []);
-
-      // Fetch discussions (both process and proposal discussions)
-      const proposalIds = (proposalsData || []).map((p) => p.id);
-      const orCondition =
-        proposalIds.length > 0
-          ? `process_id.eq.${processId},proposal_id.in.(${proposalIds.join(
-              ','
-            )})`
-          : `process_id.eq.${processId}`;
-
-      const { data: discussionsData, error: discussionsError } = await supabase
-        .from('discussions')
-        .select('*')
-        .or(orCondition)
-        .eq('is_deleted', false)
-        .order('created_at', { ascending: true });
-
-      if (discussionsError) {
-        console.error('Error fetching discussions:', discussionsError);
-      }
-
-      console.log('Fetched discussions:', discussionsData);
-      console.log('OrCondition used:', orCondition);
-      setDiscussions(discussionsData || []);
-
-      // Track participation
-      if (user) {
-        await supabase.from('participations').upsert({
-          user_id: user.id,
-          process_id: processId,
-          participation_type: 'view',
-        });
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmitProposal = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !process) return;
-
-    setError('');
-    setSuccess('');
-    setSubmittingProposal(true);
-
-    try {
-      const { error } = await supabase.from('proposals').insert({
-        process_id: process.id,
-        title: newProposal.title,
-        title_ur: newProposal.title_ur || null,
-        description: newProposal.description,
-        description_ur: newProposal.description_ur || null,
-        author_id: user.id,
-        status: 'under_review',
-      });
-
-      if (error) {
-        setError('Failed to submit proposal');
-      } else {
-        setSuccess(
-          'Proposal submitted successfully! It will appear publicly after review and approval.'
-        );
-        setNewProposal({
-          title: '',
-          title_ur: '',
-          description: '',
-          description_ur: '',
-        });
-        await fetchProcessData();
-
-        // Track participation
-        await supabase.from('participations').upsert({
-          user_id: user.id,
-          process_id: process.id,
-          participation_type: 'proposal',
-        });
-      }
-    } catch (error) {
-      setError('An unexpected error occurred');
-    } finally {
-      setSubmittingProposal(false);
-    }
-  };
-
-  const handleVote = async (
-    proposalId: string,
-    voteType: 'support' | 'oppose' | 'neutral'
-  ) => {
-    if (!user || !process) return;
-
-    setVotingLoading(proposalId);
-
-    try {
-      // First, check if user has already voted on this proposal
-      const { data: existingVote } = await supabase
-        .from('votes')
-        .select('id, vote_type')
-        .eq('proposal_id', proposalId)
-        .eq('user_id', user.id)
-        .single();
-
-      let error = null;
-
-      if (existingVote) {
-        // User has voted before, update their vote
-        const { error: updateError } = await supabase
-          .from('votes')
-          .update({ vote_type: voteType })
-          .eq('id', existingVote.id);
-
-        error = updateError;
-      } else {
-        // User hasn't voted, insert new vote
-        const { error: insertError } = await supabase.from('votes').insert({
-          proposal_id: proposalId,
-          user_id: user.id,
-          vote_type: voteType,
-        });
-
-        error = insertError;
-      }
-
-      if (!error) {
-        await fetchProcessData();
-
-        // Track participation
-        await supabase.from('participations').upsert({
-          user_id: user.id,
-          process_id: process.id,
-          participation_type: 'vote',
-        });
-      } else {
-        console.error('Error voting:', error);
-      }
-    } catch (error) {
-      console.error('Error voting:', error);
-    } finally {
-      setVotingLoading(null);
-    }
-  };
-
-  const handleSubmitDiscussion = async () => {
-    if (!user || !newDiscussion.content || !process) return;
-
-    setError('');
-    setSubmittingDiscussion(true);
-
-    try {
-      const { error } = await supabase.from('discussions').insert({
-        process_id: process.id,
-        author_id: user.id,
-        content: newDiscussion.content,
-        content_ur: newDiscussion.content_ur || null,
-      });
-
-      if (error) {
-        console.error('Error inserting discussion:', error);
-        setError('Failed to submit discussion');
-      } else {
-        setNewDiscussion({ content: '', content_ur: '' });
-        await fetchProcessData();
-
-        // Track participation
-        await supabase.from('participations').upsert({
-          user_id: user.id,
-          process_id: process.id,
-          participation_type: 'comment',
-        });
-      }
-    } catch (error) {
-      console.error('Error submitting discussion:', error);
-      setError('An unexpected error occurred');
-    } finally {
-      setSubmittingDiscussion(false);
-    }
-  };
-
-  const handleSubmitProposalComment = async (proposalId: string) => {
-    if (!user || !newProposalComment.content || !process) return;
-
-    setSubmittingComment(proposalId);
-
-    try {
-      const { error } = await supabase.from('discussions').insert({
-        proposal_id: proposalId,
-        author_id: user.id,
-        content: newProposalComment.content,
-        content_ur: newProposalComment.content_ur || null,
-      });
-
-      if (!error) {
-        setNewProposalComment({ content: '', content_ur: '' });
-        await fetchProcessData();
-
-        // Track participation
-        await supabase.from('participations').upsert({
-          user_id: user.id,
-          process_id: process.id,
-          participation_type: 'comment',
-        });
-      }
-    } catch (error) {
-      console.error('Error submitting comment:', error);
-    } finally {
-      setSubmittingComment(null);
-    }
-  };
-
-  const getVoteCount = (proposalId: string, type: string) => {
-    return votes.filter(
-      (v) => v.proposal_id === proposalId && v.vote_type === type
-    ).length;
-  };
-
-  const getUserVote = (proposalId: string) => {
-    return votes.find(
-      (v) => v.proposal_id === proposalId && v.user_id === user?.id
-    );
-  };
-
-  const getProposalDiscussions = (proposalId: string) => {
-    return discussions.filter((d) => d.proposal_id === proposalId);
-  };
+  const {data: process_data, isPending: isPendingProcess} = useProcessSingle(process_id)
+  const useCastVoteMutation = useCastVote();
 
   const getTitle = (item: { title: string; title_ur?: string }) => {
     return language === 'ur' && item.title_ur ? item.title_ur : item.title;
@@ -363,7 +70,7 @@ export default function ProcessDetailPage() {
       : item.content;
   };
 
-  if (loading) {
+  if (isPendingProcess) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -374,7 +81,7 @@ export default function ProcessDetailPage() {
     );
   }
 
-  if (!process) {
+  if (!process_data) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -433,52 +140,52 @@ export default function ProcessDetailPage() {
                 <div className="flex items-center gap-2">
                   <Badge
                     variant={
-                      process.status === 'active' ? 'default' : 'outline'
+                      process_data.status === 'active' ? 'default' : 'outline'
                     }
                   >
-                    {t(`status.${process.status}`)}
+                    {t(`status.${process_data.status}`)}
                   </Badge>
                   <Badge variant="outline">
-                    {t(`category.${process.category.toLowerCase()}`)}
+                    {t(`category.${process_data.category.toLowerCase()}`)}
                   </Badge>
                 </div>
                 <div className="flex items-start justify-between">
-                  <h1 className="text-3xl font-bold">{getTitle(process)}</h1>
+                  <h1 className="text-3xl font-bold">{getTitle(process_data)}</h1>
                   <ShareButton
                     url={`${
                       typeof window !== 'undefined'
                         ? window.location.origin
                         : ''
-                    }/processes/${process.id}`}
+                    }/process_dataes/${process_data.id}`}
                     title={`Join the discussion on: ${getTitle(
-                      process
+                      process_data
                     )} - Hum Awaaz`}
-                    description={`Participate in Pakistan's democratic process. Share your voice on ${getTitle(
-                      process
+                    description={`Participate in Pakistan's democratic process_data. Share your voice on ${getTitle(
+                      process_data
                     )}. Vote, discuss, and help shape our nation's future.`}
                     variant="default"
                   />
                 </div>
                 <p className="text-lg text-muted-foreground max-w-3xl">
-                  {getDescription(process)}
+                  {getDescription(process_data)}
                 </p>
 
                 <div className="flex items-center gap-6 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
                     <span>
-                      {process.organization || 'Government Initiative'}
+                      {process_data.organization || 'Government Initiative'}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
                     <span>
-                      Ends: {new Date(process.end_date).toLocaleDateString()}
+                      Ends: {new Date(process_data.end_date).toLocaleDateString()}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    <span>{process.participation_count || 0} participants</span>
+                    <span>{process_data.participation_count || 0} participants</span>
                   </div>
                 </div>
               </div>
@@ -492,14 +199,14 @@ export default function ProcessDetailPage() {
                 className="flex items-center gap-2"
               >
                 <FileText className="h-4 w-4" />
-                Proposals ({proposals.length})
+                Proposals ({process_data.proposals.length})
               </TabsTrigger>
               <TabsTrigger
                 value="discussions"
                 className="flex items-center gap-2"
               >
                 <MessageSquare className="h-4 w-4" />
-                Discussions ({discussions.length})
+                Discussions ({process_data.discussions.length})
               </TabsTrigger>
               <TabsTrigger value="submit" className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
@@ -508,7 +215,7 @@ export default function ProcessDetailPage() {
             </TabsList>
 
             <TabsContent value="proposals" className="space-y-6">
-              {proposals.length === 0 ? (
+              {process_data.proposals.length === 0 ? (
                 <Card>
                   <CardContent className="text-center py-12">
                     <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -518,7 +225,7 @@ export default function ProcessDetailPage() {
                   </CardContent>
                 </Card>
               ) : (
-                proposals.map((proposal) => (
+                process_data.proposals.map((proposal:any) => (
                   <Card key={proposal.id}>
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
@@ -528,54 +235,54 @@ export default function ProcessDetailPage() {
                             <>
                               <Button
                                 variant={
-                                  getUserVote(proposal.id)?.vote_type ===
+                                  proposal.votes[0]?.vote_type ===
                                   'support'
                                     ? 'default'
                                     : 'outline'
                                 }
                                 size="sm"
                                 onClick={() =>
-                                  handleVote(proposal.id, 'support')
+                                  useCastVoteMutation.mutate({proposalId: proposal.id, voteType: 'support'})
                                 }
-                                disabled={votingLoading === proposal.id}
+                                disabled={useCastVoteMutation.isPending}
                                 className="flex items-center gap-1"
                               >
                                 <ThumbsUp className="h-4 w-4" />
-                                {getVoteCount(proposal.id, 'support')}
+                                {proposal.voteCounts?.support || 0}
                               </Button>
                               <Button
                                 variant={
-                                  getUserVote(proposal.id)?.vote_type ===
+                                  proposal.votes[0]?.vote_type ===
                                   'oppose'
                                     ? 'default'
                                     : 'outline'
                                 }
                                 size="sm"
                                 onClick={() =>
-                                  handleVote(proposal.id, 'oppose')
+                                  useCastVoteMutation.mutate({proposalId: proposal.id, voteType: 'oppose'})
                                 }
-                                disabled={votingLoading === proposal.id}
+                                disabled={useCastVoteMutation.isPending}
                                 className="flex items-center gap-1"
                               >
                                 <ThumbsDown className="h-4 w-4" />
-                                {getVoteCount(proposal.id, 'oppose')}
+                                {proposal.voteCounts?.oppose || 0}
                               </Button>
                               <Button
                                 variant={
-                                  getUserVote(proposal.id)?.vote_type ===
+                                  proposal.votes[0]?.vote_type ===
                                   'neutral'
                                     ? 'default'
                                     : 'outline'
                                 }
                                 size="sm"
                                 onClick={() =>
-                                  handleVote(proposal.id, 'neutral')
+                                  useCastVoteMutation.mutate({proposalId: proposal.id, voteType: 'neutral'})
                                 }
-                                disabled={votingLoading === proposal.id}
+                                disabled={useCastVoteMutation.isPending}
                                 className="flex items-center gap-1"
                               >
                                 <MinusCircle className="h-4 w-4" />
-                                {getVoteCount(proposal.id, 'neutral')}
+                                {proposal.voteCounts?.neutral || 0}
                               </Button>
                             </>
                           )}
@@ -593,11 +300,11 @@ export default function ProcessDetailPage() {
                         <h4 className="font-semibold flex items-center gap-2">
                           <MessageSquare className="h-4 w-4" />
                           Discussions (
-                          {getProposalDiscussions(proposal.id).length})
+                          {proposal.discussions.length})
                         </h4>
 
-                        {getProposalDiscussions(proposal.id).map(
-                          (discussion) => (
+                        {proposal.discussions.map(
+                          (discussion: any) => (
                             <div
                               key={discussion.id}
                               className="border-l-2 border-gray-200 pl-4 py-2"
@@ -616,8 +323,8 @@ export default function ProcessDetailPage() {
                         )}
 
                         {user && (
-                          <div className="flex gap-2 mt-4">
-                            <Textarea
+                          <div className="">
+                            {/* <Textarea
                               placeholder="Add a comment..."
                               value={newProposalComment.content}
                               onChange={(e) =>
@@ -642,7 +349,8 @@ export default function ProcessDetailPage() {
                               {submittingComment === proposal.id
                                 ? 'Posting...'
                                 : 'Post'}
-                            </Button>
+                            </Button> */}
+                            <CommentForm proposal_id={proposal.id} />
                           </div>
                         )}
                       </div>
@@ -663,94 +371,7 @@ export default function ProcessDetailPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <form onSubmit={handleSubmitProposal} className="space-y-4">
-                      {error && (
-                        <Alert variant="destructive">
-                          <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                      )}
-                      {success && (
-                        <Alert>
-                          <AlertDescription>{success}</AlertDescription>
-                        </Alert>
-                      )}
-
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label htmlFor="title">Title (English)</Label>
-                          <Input
-                            id="title"
-                            value={newProposal.title}
-                            onChange={(e) =>
-                              setNewProposal({
-                                ...newProposal,
-                                title: e.target.value,
-                              })
-                            }
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="title_ur">Title (Urdu)</Label>
-                          <Input
-                            id="title_ur"
-                            value={newProposal.title_ur}
-                            onChange={(e) =>
-                              setNewProposal({
-                                ...newProposal,
-                                title_ur: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label htmlFor="description">
-                            Description (English)
-                          </Label>
-                          <Textarea
-                            id="description"
-                            value={newProposal.description}
-                            onChange={(e) =>
-                              setNewProposal({
-                                ...newProposal,
-                                description: e.target.value,
-                              })
-                            }
-                            rows={4}
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="description_ur">
-                            Description (Urdu)
-                          </Label>
-                          <Textarea
-                            id="description_ur"
-                            value={newProposal.description_ur}
-                            onChange={(e) =>
-                              setNewProposal({
-                                ...newProposal,
-                                description_ur: e.target.value,
-                              })
-                            }
-                            rows={4}
-                          />
-                        </div>
-                      </div>
-
-                      <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={submittingProposal}
-                      >
-                        {submittingProposal
-                          ? 'Submitting...'
-                          : 'Submit Proposal'}
-                      </Button>
-                    </form>
+                    <NewProposalForm process_id={process_id} />
                   </CardContent>
                 </Card>
               ) : (
@@ -782,17 +403,9 @@ export default function ProcessDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {(() => {
-                      console.log('All discussions:', discussions);
-                      console.log(
-                        'Process discussions:',
-                        discussions.filter((d) => !d.proposal_id)
-                      );
-                      return null;
-                    })()}
-                    {discussions
-                      .filter((d) => !d.proposal_id)
-                      .map((discussion) => (
+                    {process_data.discussions
+                      .filter((d:any) => !d.proposal_id)
+                      .map((discussion:any) => (
                         <div
                           key={discussion.id}
                           className="border-l-2 border-gray-200 pl-4 py-2"
@@ -807,7 +420,7 @@ export default function ProcessDetailPage() {
                         </div>
                       ))}
 
-                    {discussions.filter((d) => !d.proposal_id).length === 0 && (
+                    {process_data.discussions.filter((d:any) => !d.proposal_id).length === 0 && (
                       <p className="text-muted-foreground text-center py-8">
                         No discussions yet. Be the first to share your thoughts!
                       </p>
@@ -815,34 +428,7 @@ export default function ProcessDetailPage() {
 
                     {user && (
                       <div className="space-y-2 mt-6">
-                        {error && (
-                          <Alert variant="destructive">
-                            <AlertDescription>{error}</AlertDescription>
-                          </Alert>
-                        )}
-                        <Label>Add to discussion</Label>
-                        <Textarea
-                          placeholder="Share your thoughts..."
-                          value={newDiscussion.content}
-                          onChange={(e) =>
-                            setNewDiscussion({
-                              ...newDiscussion,
-                              content: e.target.value,
-                            })
-                          }
-                          rows={4}
-                        />
-                        <Button
-                          onClick={handleSubmitDiscussion}
-                          disabled={
-                            submittingDiscussion ||
-                            !newDiscussion.content.trim()
-                          }
-                        >
-                          {submittingDiscussion
-                            ? 'Posting...'
-                            : 'Post Discussion'}
-                        </Button>
+                        <DiscussionForm process_id={process_id} />
                       </div>
                     )}
                   </div>
@@ -852,8 +438,8 @@ export default function ProcessDetailPage() {
           </Tabs>
         </div>
       </main>
-
       <Footer />
     </div>
   );
 }
+

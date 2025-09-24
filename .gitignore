@@ -30,3 +30,5 @@ next-env.d.ts
 supabase/
 CLAUDE.md
 .mcp.json
+/lib/generated/prisma
+/.vscode/
