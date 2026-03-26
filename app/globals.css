@@ -34,4 +34,22 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Improve mobile tap targets */
+  button {
+    @apply min-h-[44px];
+  }
+  
+  /* Better mobile text readability */
+  @media (max-width: 640px) {
+    html {
+      font-size: 16px;
+    }
+  }
+  
+  /* Prevent horizontal scroll on mobile */
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
 }

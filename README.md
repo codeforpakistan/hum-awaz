@@ -2,7 +2,7 @@
 
 **Pakistan's Premier Participatory Democracy Platform**
 
-Hum Awaz (حم آواز) empowers Pakistani citizens to actively participate in democratic processes through digital consultations, proposal submissions, and collaborative decision-making. Built for transparency, accessibility, and meaningful civic engagement.
+Hum Awaz (ہم آواز) empowers Pakistani citizens to actively participate in democratic processes through digital consultations, proposal submissions, and collaborative decision-making. Built for transparency, accessibility, and meaningful civic engagement.
 
 ---
 
@@ -342,7 +342,7 @@ Special thanks to:
 
 *Built with ❤️ for the people of Pakistan*
 
-**Hum Awaz - حم آواز - Voice of the People**
+**Hum Awaz - ہم آواز - Voice of the People**
 
 ---
 
