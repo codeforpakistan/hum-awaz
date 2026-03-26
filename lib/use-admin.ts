@@ -27,7 +27,7 @@ export function useAdmin() {
           .select('role')
           .eq('user_id', user.id)
           .eq('is_active', true)
-          .in('role', ['government_admin', 'moderator'])
+          .in('role', ['admin', 'moderator'])
 
         if (error) {
           console.error('Error checking admin role:', error)
@@ -35,7 +35,7 @@ export function useAdmin() {
           setIsGovernmentAdmin(false)
         } else if (data && data.length > 0) {
           setIsAdmin(true)
-          setIsGovernmentAdmin(data.some(r => r.role === 'government_admin'))
+          setIsGovernmentAdmin(data.some(r => r.role === 'admin'))
         } else {
           setIsAdmin(false)
           setIsGovernmentAdmin(false)

@@ -203,12 +203,12 @@ export default function AdminUsersPage() {
 
   const getRoleBadge = (role: string) => {
     const styles: Record<string, string> = {
-      government_admin: 'bg-purple-100 text-purple-800 border-purple-200',
+      admin: 'bg-purple-100 text-purple-800 border-purple-200',
       moderator: 'bg-blue-100 text-blue-800 border-blue-200',
       facilitator: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     }
     const labels: Record<string, string> = {
-      government_admin: t('admin.govAdmin'),
+      admin: t('admin.govAdmin'),
       moderator: t('admin.moderator'),
       facilitator: t('admin.facilitator'),
     }
@@ -398,7 +398,7 @@ export default function AdminUsersPage() {
               <SelectValue placeholder={t('admin.selectRole')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="government_admin">{t('admin.govAdmin')}</SelectItem>
+              <SelectItem value="admin">{t('admin.govAdmin')}</SelectItem>
               <SelectItem value="moderator">{t('admin.moderator')}</SelectItem>
               <SelectItem value="facilitator">{t('admin.facilitator')}</SelectItem>
             </SelectContent>

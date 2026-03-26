@@ -30,11 +30,11 @@ async function verifyAdmin(req: NextRequest) {
     .select('role')
     .eq('user_id', user.id)
     .eq('is_active', true)
-    .in('role', ['government_admin', 'moderator'])
+    .in('role', ['admin', 'moderator'])
 
   if (!roles || roles.length === 0) return null
 
-  return { user, isGovernmentAdmin: roles.some(r => r.role === 'government_admin') }
+  return { user, isGovernmentAdmin: roles.some(r => r.role === 'admin') }
 }
 
 // GET - List all users with their roles
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'user_id and role are required' }, { status: 400 })
     }
 
-    if (!['government_admin', 'moderator', 'facilitator'].includes(role)) {
+    if (!['admin', 'moderator', 'facilitator'].includes(role)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
     }
 
