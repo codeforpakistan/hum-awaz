@@ -260,7 +260,7 @@ export interface MeetingAttendee {
 export interface UserRole {
   id: string
   user_id: string
-  role: 'citizen' | 'government_admin' | 'moderator' | 'facilitator' | 'observer'
+  role: 'citizen' | 'admin' | 'moderator' | 'facilitator' | 'observer'
   scope?: 'platform' | 'process' | 'component'
   resource_id?: string
   granted_by?: string

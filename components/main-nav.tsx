@@ -7,11 +7,13 @@ import { useAuth } from '@/lib/auth-context'
 import { Button } from './ui/button'
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu'
-import { User, LogOut, BarChart3, Menu } from 'lucide-react'
+import { User, LogOut, BarChart3, Menu, Shield } from 'lucide-react'
+import { useAdmin } from '@/lib/use-admin'
 
 export function MainNav() {
   const { t } = useLanguage()
   const { user, signOut } = useAuth()
+  const { isAdmin } = useAdmin()
   const [isOpen, setIsOpen] = useState(false)
 
   const handleSignOut = async () => {
@@ -64,6 +66,14 @@ export function MainNav() {
                   My Dashboard
                 </Link>
               </DropdownMenuItem>
+              {isAdmin && (
+                <DropdownMenuItem asChild>
+                  <Link href="/admin" className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    {t('admin.title')}
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2">
                 <LogOut className="h-4 w-4" />
@@ -118,6 +128,16 @@ export function MainNav() {
                       <BarChart3 className="h-5 w-5" />
                       My Dashboard
                     </Link>
+                    {isAdmin && (
+                      <Link
+                        href="/admin"
+                        className="flex items-center gap-3 text-lg font-medium px-4 py-2 rounded-md hover:bg-muted transition-colors"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <Shield className="h-5 w-5" />
+                        {t('admin.title')}
+                      </Link>
+                    )}
                     <Button
                       variant="ghost"
                       className="w-full justify-start gap-3 text-lg font-medium px-4 py-2 h-auto mt-2"
